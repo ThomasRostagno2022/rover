@@ -166,6 +166,37 @@ If no Pi is available at a price you like, **build Option B now.** ESP32-CAM boa
 
 **Get alerted when Pi Zeros come back:** [rpilocator.com](https://rpilocator.com) tracks stock at official sellers and can notify you.
 
+### Amazon-only cart (everything from one store)
+
+Every part is available on Amazon (amazon.com). These links were found in **November 2026**. Amazon listings change often and this guide can't check live stock, so if one says "Currently unavailable", use the search link next to it.
+
+⚠️ **About the Raspberry Pi on Amazon:** Amazon doesn't sell Raspberry Pis directly. Third-party sellers do, often at a markup, and some only sell "kits" padded with extras: I saw Pi Zero 2 W kits at **$125–150**, about 6× the real price. **Don't pay more than about $30 for a Pi Zero 2 W, $35 for a Pi 3 A+, or $75 for a Pi 4 (2 GB).** Buy the bare board, not a kit.
+
+| Part | Amazon link | Backup: Amazon search |
+|---|---|---|
+| **Computer, first choice:** Pi Zero 2 W with soldered header | [Waveshare Pi Zero 2 W, pre-soldered header](https://www.amazon.com/Raspberry-Pre-Soldered-Quad-Core-Cortex-A53-Bluetooth/dp/B09LTCF8DD) · [Pi Zero 2 WH, colour-coded header](https://www.amazon.com/Zero-Pre-Soldered-Color-Coded-Quad-Core-Bluetooth/dp/B0DS68NPGF) | [search](https://www.amazon.com/s?k=raspberry+pi+zero+2+w+pre-soldered+header) |
+| **Computer, or:** Pi 3 Model A+ | [Waveshare Pi 3 A+](https://www.amazon.com/Waveshare-Raspberry-Pi-Model-Cortex-A53/dp/B07KPCF2B6) · [Pi 3 A+ board](https://www.amazon.com/Raspberry-Pi-3-Computer-Board/dp/B07KKBCXLY) | [search](https://www.amazon.com/s?k=raspberry+pi+3+model+a%2B) |
+| **Computer, or:** Pi 4 Model B 2 GB | [Pi 4 Model B 2 GB](https://www.amazon.com/Raspberry-Model-2019-Quad-Bluetooth/dp/B07TD42S27) | [search](https://www.amazon.com/s?k=raspberry+pi+4+model+b+2gb) |
+| **Or skip the Pi:** ESP32-CAM 2-pack (Option B) | [AITRIP ESP32-CAM-MB](https://www.amazon.com/AITRIP-ESP32-CAM-ESP32-CAM-MB-Compatible-Raspberry/dp/B097BLT24K) · [Aideepen](https://www.amazon.com/ESP32-CAM-MB-Aideepen-ESP32-CAM-Bluetooth-Arduino/dp/B0948ZFTQZ) | [search](https://www.amazon.com/s?k=esp32-cam-mb+2+pack) |
+| microSD 32 GB | — | [SanDisk Ultra 32GB](https://www.amazon.com/s?k=sandisk+ultra+32gb+microsd+a1) |
+| Camera + cable | [Aoicrie OV5647 (Pi Zero ribbon + standard cable)](https://www.amazon.com/Aoicrie-Raspberry-Camera-Module-Compatible/dp/B07X145XM5) | [search](https://www.amazon.com/s?k=ov5647+camera+pi+zero+cable) |
+| 4WD chassis | [YonPhsy 2-layer acrylic, TT motors](https://www.amazon.com/4WD-Robot-Chassis-Robotics-Raspberry/dp/B0G5N8P9YF) · [4WD chassis, 4 TT motors](https://www.amazon.com/Robot-Chassis-Motor-Arduino-Raspberry/dp/B07F759T89) | [search](https://www.amazon.com/s?k=4wd+robot+chassis+kit+tt+motor) |
+| Motor driver, pre-soldered | [SparkFun TB6612FNG with Headers](https://www.amazon.com/SparkFun-Motor-Driver-TB6612FNG-Headers/dp/B07PV1S8HX) · [2-pack pre-soldered](https://www.amazon.com/TB6612FNG-Driver-Pre%E2%80%91Soldered-Pin-Version/dp/B0HFMH9T4L) | [search](https://www.amazon.com/s?k=tb6612fng+pre-soldered) |
+| Distance sensor (3–5 V) | [RCWL-1601 4-pack](https://www.amazon.com/JESSINIE-RCWL-1601-Ultrasonic-Ranging-Compatible/dp/B0CB3YCFYY) · [HC-SR04P 2-pack](https://www.amazon.com/Ultrasonic-2cm-450cm-Interface-Compatible-Raspberry/dp/B0HNVHHFP6) | [search](https://www.amazon.com/s?k=rcwl-1601+3v) |
+| 4×AA holder with switch | [Ogrmar 2-pack, switch + cover](https://www.amazon.com/Ogrmar-Switch-Battery-Holder-Leads/dp/B075G8XZLM) · [Onwon 2-pack](https://www.amazon.com/Onwon-Battery-Holder-Leads-Switch/dp/B01DEYV00W) | [search](https://www.amazon.com/s?k=4+aa+battery+holder+switch+leads) |
+| AA batteries | — | [Eneloop AA + charger](https://www.amazon.com/s?k=eneloop+aa+4+pack+with+charger) |
+| Power bank (≥ 2.4 A; 3 A USB-C for a Pi 4) | — | [slim 5000 mAh](https://www.amazon.com/s?k=slim+power+bank+5000mah) |
+| USB cable, short | — | [micro-USB](https://www.amazon.com/s?k=short+micro+usb+cable+20cm) · [USB-C (Pi 4)](https://www.amazon.com/s?k=short+usb+c+cable+20cm) |
+| Jumper wires (M-F, M-M, F-F) | [ELEGOO 120 pcs, 3 types](https://www.amazon.com/Elegoo-EL-CP-004-Multicolored-Breadboard-arduino/dp/B01EV70C78) · [20 cm, 3 types](https://www.amazon.com/120Pcs-Breadboards-Jumper-Female-Female/dp/B07H84JQKX) | [search](https://www.amazon.com/s?k=dupont+jumper+wires+kit) |
+| Mini breadboards | [DaFuRui 12-pack, sticky back](https://www.amazon.com/DaFuRui-tie-Points-Solderless-Breadboard-Compatible/dp/B07KGQ7H8B) | [search](https://www.amazon.com/s?k=mini+breadboard+170) |
+| White LEDs | [CHANZON 100× 5 mm white, 3 V 20 mA](https://www.amazon.com/Transparent-Intensity-Lighting-Electronics-Components/dp/B01AUI4VQU) | [search](https://www.amazon.com/s?k=5mm+white+led+100+pack) |
+| Resistor kit | [ALLECIN 25 values](https://www.amazon.com/ALLECIN-1-4w-Resistor-Kit/dp/B0CQCMDF95) | [search](https://www.amazon.com/s?k=1%2F4+watt+resistor+kit) |
+| PN2222 transistors | [Adafruit PN2222 10-pack](https://www.amazon.com/Adafruit-NPN-Bipolar-Transistors-PN2222/dp/B00XW2OK7M) | [search](https://www.amazon.com/s?k=pn2222a+transistor) |
+| Foam tape, zip ties | — | [foam mounting tape](https://www.amazon.com/s?k=double+sided+foam+mounting+tape) |
+| Option C: extra TT motors + wheels | [Stemedu 4 sets](https://www.amazon.com/Gearbox-Motor-200RPM-Wheel-Arduino/dp/B07R13MLJD) | [search](https://www.amazon.com/s?k=tt+motor+65mm+wheel+4+sets) |
+
+**Not in the US?** The same search terms work on amazon.ca, amazon.co.uk, amazon.fr, amazon.de and others; just copy the text after `k=` in a search link.
+
 ### Option B extras
 
 | Part | Buy here | Backup | Notes |
