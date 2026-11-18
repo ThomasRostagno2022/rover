@@ -8,7 +8,7 @@ Option C looks and drives like a real planetary rover. It has **six wheels on a 
 2. Do the **[Option A guide](02-build-option-a-pi.md)**, phases 1–3 (SD card, WiFi, software) and phase 5 (camera), exactly as written.
 3. Build the 6-wheel chassis (below) in place of Option A's phase 4.
 4. Do the motor wiring (below) in place of Option A's phase 6.
-5. Continue with Option A's phase 7 (distance sensor), then calibration, then [guide 5](05-claude-brain.md).
+5. Continue with Option A's phases 7 (distance sensor) and 8 (headlights), then calibration, then [guide 5](05-claude-brain.md).
 
 ---
 
@@ -99,6 +99,6 @@ One TB6612 channel can handle about **1.2 A**, which is enough for two small mot
 
 **Batteries:** use **NiMH** AA rechargeables. Six motors drain alkalines quickly and make the Pi's motor control sluggish.
 
-Then continue with Option A's phase 7 (distance sensor), **calibrate** (six wheels turn more slowly than four, so your numbers will differ), and hand the wheel to Claude in **[guide 5](05-claude-brain.md)**.
+Then continue with Option A's phases 7 (distance sensor) and 8 (headlights), **calibrate** (six wheels turn more slowly than four, so your numbers will differ), and hand the wheel to Claude in **[guide 5](05-claude-brain.md)**.
 
 **Climbing tip:** rocker-bogie works best **slowly**. Try `DRIVE_SPEED = 0.5` in `config.py`, then try missions with "obstacle courses" made of books and cables.

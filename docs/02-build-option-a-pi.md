@@ -13,6 +13,7 @@ Phase 4  Build the chassis                  (mechanical)
 Phase 5  Camera                             → test
 Phase 6  Motors + motor driver              → test  (wheels in the air!)
 Phase 7  Distance sensor                    → test
+Phase 8  Headlights                         → test
 Then:    Calibrate, and hand the wheel to Claude (guide 5)
 ```
 
@@ -80,7 +81,7 @@ sudo apt update && sudo apt full-upgrade -y
 
 **2. Install the tools the rover needs:**
 ```bash
-sudo apt install -y git python3-venv python3-gpiozero python3-lgpio
+sudo apt install -y git python3-venv python3-gpiozero python3-lgpio python3-pil
 ```
 ```bash
 sudo apt install -y --no-install-recommends python3-picamera2
@@ -89,6 +90,7 @@ What these are:
 - `git` downloads code
 - `python3-venv` creates private Python environments
 - `gpiozero` + `lgpio` control the GPIO pins
+- `pil` (Pillow) measures how dark a photo is, for the automatic headlights
 - `picamera2` controls the camera
 
 **3. Download this project onto the Pi.** If the project is on your GitHub, run:
@@ -299,6 +301,64 @@ In step 2, move your hand toward and away from the sensor. The numbers should ch
 
 ---
 
+## Phase 8: Headlights → test
+
+Claude can only drive as well as it can see. With headlights the rover can explore under furniture, in dim rooms and at night. The code switches them on **automatically** when a photo is too dark, and Claude can switch them on and off itself.
+
+**Power off first.** Then choose one of the two versions. Both use the same Pi pin and the same code.
+
+### Why not just plug an LED into a GPIO pin?
+
+You can, but it will be **dim**. A white LED needs about 3 V to light up, and a GPIO pin gives only 3.3 V and at most about 16 mA. That leaves almost nothing to push current through it. So the "bright" version uses a **transistor**: a tiny electronic switch. The Pi's weak signal turns the transistor on, and the transistor lets current flow from the Pi's stronger **5 V** pin through the LEDs. This is the same idea as the motor driver, in miniature. It's one of the most useful tricks in electronics.
+
+### Version 1 (simple, dim): one LED straight from the pin
+
+Good enough to light things up to about 30–50 cm away.
+
+```
+Pi pin 37 (GPIO26) ──[ 47 Ω ]──▶ LED long leg (+)
+                                 LED short leg (−) ──▶ Pi pin 39 (GND)
+```
+
+### Version 2 (bright, recommended): two LEDs switched by a transistor
+
+```
+ Pi pin 4 (5V) ──┬──[ 100 Ω ]──▶ LED 1 long leg (+) ── LED 1 short leg (−) ──┐
+                 └──[ 100 Ω ]──▶ LED 2 long leg (+) ── LED 2 short leg (−) ──┤
+                                                                             ▼
+                                                                  C (collector)
+ Pi pin 37 (GPIO26) ──[ 1 kΩ ]──────────────────────────────────▶ B (base)      PN2222A
+                                                                  E (emitter)
+                                                                             │
+ Pi pin 39 (GND) ◀───────────────────────────────────────────────────────────┘
+```
+
+Build it on the breadboard:
+
+| ✔ | Connection |
+|---|---|
+| ☐ | Push the **transistor** into the breadboard, each leg in its own row. With the **flat side facing you**, a PN2222A's legs are **E, B, C** from left to right. ⚠️ Other transistor types (e.g. some "2N2222") have a different order, so check the listing or datasheet. |
+| ☐ | **Pi pin 37** (GPIO26) → a **1 kΩ** resistor → the **B** (base) row |
+| ☐ | **E** (emitter) row → **Pi pin 39** (GND) |
+| ☐ | **Pi pin 4** (5V) → a free row (the "5 V row") |
+| ☐ | For **each** LED: 5 V row → a **100 Ω** resistor → the LED's **long leg**; the LED's **short leg** → the **C** (collector) row |
+
+**Mounting:** bend the LED legs so the LEDs point forward and slightly down, on either side of the camera. Don't put them right next to the lens, or the camera will see glare. Use extension jumper wires (F-M) to reach the front of the rover, and tape or hot-glue the LEDs in place.
+
+**LED legs:** the **long** leg is + (anode). If the LED has been trimmed, the − side has a small flat edge on the rim. An LED put in backwards simply doesn't light; it's not damaged.
+
+**Test:** power on, then run:
+
+```bash
+python -m rover check --hardware pi
+```
+
+Step 3b blinks the headlights 3 times. You can also press `l` in teleop to toggle them. Not working? See [troubleshooting](06-troubleshooting-and-next-steps.md#headlights-dont-light).
+
+Don't want headlights? Set `USE_HEADLIGHTS = False` in `rover/config.py`. Claude then won't be offered the light actions.
+
+---
+
 ## Finish the build
 
 1. Put the **top plate** on the spacers. Mount the Pi and the power bank on top with foam tape or Velcro. Leave the Pi's micro-USB ports reachable.
@@ -313,7 +373,7 @@ Before letting Claude drive, drive it yourself. Put it on the **floor** and run:
 python -m rover teleop --hardware pi
 ```
 
-Type `w`, `a`, `s` or `d` and press Enter to move, `p` to take a photo, and `q` to quit. Try driving it toward a wall: the distance sensor should stop it about 20 cm away. 🎉
+Type `w`, `a`, `s` or `d` and press Enter to move, `l` to toggle the headlights, `p` to take a photo, and `q` to quit. Try driving it toward a wall: the distance sensor should stop it about 20 cm away. 🎉
 
 ## Calibrate
 

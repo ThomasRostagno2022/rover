@@ -18,6 +18,7 @@ DEFAULT_DIR = pathlib.Path(__file__).resolve().parents[2] / "sim_images"
 
 class SimRover(Rover):
     name = "simulator"
+    has_lights = True  # pretend headlights, so you can test the light actions
 
     def __init__(self, image_dir: str | None = None):
         folder = pathlib.Path(image_dir) if image_dir else DEFAULT_DIR
@@ -37,6 +38,9 @@ class SimRover(Rover):
         self.index += 1
         print(f"   [sim camera] showing {path.name}")
         return path.read_bytes()
+
+    def _lights(self, on: bool) -> None:
+        print(f"   [sim lights] headlights {'ON' if on else 'off'}")
 
     def set_motors(self, left: float, right: float) -> None:
         if left or right:

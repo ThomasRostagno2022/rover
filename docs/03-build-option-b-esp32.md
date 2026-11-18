@@ -52,7 +52,7 @@ The ESP32 is programmed with the **Arduino IDE**, an app for writing and uploadi
    Rover ready! Open this in your browser:  http://192.168.1.50
    ```
    **Write down that address**, because your laptop needs it.
-8. Open that address in your laptop's browser. You should see a photo from the camera, plus arrow buttons (which do nothing yet, since no motors are connected). Refresh to get a new photo. 🎉
+8. Open that address in your laptop's browser. You should see a photo from the camera, plus arrow buttons (which do nothing yet, since no motors are connected). Refresh to get a new photo. Press the 💡 button: the bright white LED next to the camera should switch on. That's the rover's **headlight**. Press it again to switch it off. 🎉
 
 > **Errors?** `Camera init failed` → re-seat the camera ribbon. `Brownout detector was triggered` → not enough power: try a different USB port or cable, without a hub. Never-ending dots when connecting to WiFi → wrong name or password, or a 5 GHz network.
 
@@ -162,6 +162,8 @@ python -m rover calibrate --hardware esp32
 ```
 
 Copy the printed values into `rover/config.py`.
+
+**Headlight:** the built-in flash LED is very bright and gets **warm** if left on for many minutes. That's fine for missions, but switch it off when you're done; the code switches it off automatically when a mission or teleop ends. Press `l` in teleop to toggle it.
 
 > ⚠️ **No distance sensor on this version.** The ESP32-CAM has almost no free pins once the camera and motors are connected. Claude must avoid obstacles using the camera alone, so keep missions in open spaces and keep moves short (the code limits every move to at most 3 s). An easy upgrade is in [next steps](06-troubleshooting-and-next-steps.md#upgrades).
 

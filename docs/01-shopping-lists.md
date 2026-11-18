@@ -10,7 +10,7 @@ Prices are **rough US estimates** from Amazon, AliExpress, Adafruit, The Pi Hut,
 
 ---
 
-## Option A: Pi Rover (recommended) · total ≈ $95–120
+## Option A: Pi Rover (recommended) · total ≈ $100–125
 
 | # | Part | Search term | Qty | ≈ Price | Notes |
 |---|---|---|---|---|---|
@@ -27,7 +27,10 @@ Prices are **rough US estimates** from Amazon, AliExpress, Adafruit, The Pi Hut,
 | 11 | Jumper wire kit | `dupont jumper wires male female 40 pin` (M-M, M-F, F-F) | 1 | $6–7 | You'll mostly use **F-F** (female-female). |
 | 12 | Mini breadboard | `mini breadboard 170 tie points` | 1 | $3–5 | For sharing the 3.3 V and GND connections. Usually sticky-backed. |
 | 13 | Mounting bits | double-sided foam tape, zip ties, small Velcro strips | — | $5 | |
-| | | | | **≈ $95–120** | |
+| 14 | Headlights: white LEDs | `5mm white LED` (a pack of 20+) | 2 | $2–3 | Lets the rover see in the dark |
+| 15 | Headlights: resistor kit | `resistor assortment kit` | 1 | $5–7 | You need 100 Ω and 1 kΩ (and 47 Ω for the simple version). Handy forever. |
+| 16 | Headlights: NPN transistor | `PN2222A transistor` | 1 | $2–3 (pack) | An electronic switch so the Pi can power *bright* LEDs. See the Option A guide, Phase 8. |
+| | | | | **≈ $100–125** | |
 
 **Optional but useful:**
 - `soldering iron kit` ($15–25). Only needed if your driver board comes with loose pins (note ②). Also a great skill to learn.
@@ -59,6 +62,7 @@ Prices are **rough US estimates** from Amazon, AliExpress, Adafruit, The Pi Hut,
 | 6 | USB → jumper wire power cable | `USB to dupont cable` or `USB male breakout board` | 1 | $3–5 | Gets 5 V from the power bank into the ESP32-CAM's 5V and GND pins |
 | 7 | Jumper wire kit | as Option A | 1 | $6–7 | |
 | 8 | Micro-USB **data** cable | (you probably have one) | 1 | $0–3 | For programming from your laptop. Some cables are charge-only and won't work! |
+| — | Headlight | *nothing to buy* | — | $0 | The ESP32-CAM has a bright white "flash" LED built in, next to the camera |
 | | | | | **≈ $55–75** | |
 
 You also need **a laptop** (Windows, Mac or Linux) that stays switched on and on the same WiFi as the rover while it drives. The laptop runs the brain.
@@ -73,7 +77,7 @@ Option C uses **all of Option A's electronics**, *except the 4WD chassis*, plus:
 
 | # | Part | Search term | Qty | ≈ Price | Notes |
 |---|---|---|---|---|---|
-| — | Everything in Option A except item 4 (chassis) | | | ≈ $80–100 | |
+| — | Everything in Option A except item 4 (chassis), including the headlight parts | | | ≈ $85–105 | |
 | 1 | A **second** TB6612FNG | (buy the 2-pack in Option A) | 1 | $0–5 | Six motors need more current than one board can give |
 | 2a | **Either:** 6-wheel rocker-bogie chassis kit **with 3–6 V motors** | `rocker bogie 6WD robot chassis TT motor` | 1 | $40–60 | ⚠️ Check the motor voltage. **Avoid kits with 12 V motors** (they need a different battery and driver). |
 | 2b | **Or:** build your own rocker-bogie (the guide gives a design) | `TT motor with wheel` 6-pack + foam board/plywood + M3 bolts | — | $20–30 | More work, more learning, cheaper |

@@ -44,6 +44,13 @@ class PiRover(Rover):
                                          trigger=config.ULTRASONIC_TRIGGER,
                                          max_distance=2.0)
 
+        # Headlights: one GPIO pin switches the LED(s) on and off.
+        self.headlight = None
+        if config.USE_HEADLIGHTS:
+            from gpiozero import LED
+            self.headlight = LED(config.HEADLIGHT_PIN)
+            self.has_lights = True
+
         self.camera = None
         if use_camera:
             from picamera2 import Picamera2
@@ -58,6 +65,12 @@ class PiRover(Rover):
             self.camera.configure(cam_config)
             self.camera.start()
             time.sleep(1.5)  # let the camera adjust exposure / white balance
+
+    def _lights(self, on: bool) -> None:
+        if on:
+            self.headlight.on()
+        else:
+            self.headlight.off()
 
     def capture_jpeg(self) -> bytes:
         if self.camera is None:
@@ -89,7 +102,9 @@ class PiRover(Rover):
         self._apply(self.right, right, config.RIGHT_MOTOR_REVERSED)
 
     def close(self) -> None:
-        self.stop()
+        super().close()  # stops motors and switches the lights off
+        if self.headlight is not None:
+            self.headlight.close()
         if self.camera is not None:
             self.camera.stop()
             self.camera.close()

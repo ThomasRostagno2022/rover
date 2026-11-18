@@ -67,6 +67,20 @@ ULTRASONIC_ECHO = 6      # physical pin 31
 SAFETY_STOP_CM = 20
 
 # ---------------------------------------------------------------------------
+# Headlights
+# ---------------------------------------------------------------------------
+# Option A / C: white LEDs on a GPIO pin (see docs/02-build-option-a-pi.md,
+# Phase 8). Option B: the ESP32-CAM's built-in flash LED (always available).
+USE_HEADLIGHTS = True
+HEADLIGHT_PIN = 26        # physical pin 37 (GND is right next to it, pin 39)
+
+# Switch the headlights on automatically when a photo is darker than this
+# (average brightness 0 = black ... 255 = white). Claude can also switch
+# them on and off itself.
+AUTO_LIGHTS = True
+DARK_THRESHOLD = 60
+
+# ---------------------------------------------------------------------------
 # CALIBRATION -- run `python -m rover calibrate` and paste the results here
 # ---------------------------------------------------------------------------
 # How many centimetres the rover moves in 1 second at DRIVE_SPEED.

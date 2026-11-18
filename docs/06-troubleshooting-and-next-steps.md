@@ -49,6 +49,22 @@ The motors are disturbing the Pi's power supply.
 ### One side is weaker, so the rover curves when driving "straight"
 That's normal with cheap motors. It doesn't matter much, because Claude corrects course from the photos. To improve it, add a small trim: in `rover/hardware/pi.py`, `set_motors()`, multiply the stronger side by e.g. `0.9`.
 
+### Headlights don't light
+- Is the LED the right way round? The **long leg** goes toward + (the resistor from 5 V or the GPIO pin). A backwards LED just stays dark.
+- Version 2: check the transistor's legs. With the flat side facing you, a PN2222A is **E, B, C** left to right. Swapped E and C is the classic mistake.
+- Test the LED alone: connect 5 V → 100 Ω → LED → GND directly. If it lights, the LED is fine and the problem is the switching part.
+- Is `USE_HEADLIGHTS = True` in `config.py`, and `HEADLIGHT_PIN = 26` matching pin 37?
+- Version 1 is *meant* to be dim. For real light, build version 2.
+- ESP32-CAM: after updating the firmware, press 💡 on the rover's web page. If the page has no 💡 button, the new firmware isn't on the board yet.
+
+### Headlights never switch on automatically
+- `AUTO_LIGHTS` must be `True` in `config.py`.
+- Pillow must be installed (`python3 -c "import PIL"` should print nothing). On the Pi, run `sudo apt install -y python3-pil`; on a laptop, `pip install pillow`.
+- Your room may not count as "dark" for the camera, because cameras brighten dim scenes automatically. Raise `DARK_THRESHOLD` (e.g. to 80), and check the `Brightness:` values in `report.html` to choose a good number.
+
+### Glare / washed-out photos with headlights on
+Move the LEDs further from the lens, or point them more downward. Light bouncing off the chassis straight into the camera ruins photos.
+
 ### Distance sensor always reads 200 cm, or jumps around
 - Trig and Echo swapped? Check pins 29 and 31.
 - Soft things like curtains, sofas and clothes absorb sound, and angled surfaces bounce it away. That's a real limitation of ultrasonic sensors.
@@ -86,7 +102,6 @@ Open the mission's `report.html` and look at what it *saw*:
 Once your rover drives itself, here are ideas, from easy to hard:
 
 ### Easy
-- **Headlights.** Add a white LED + 220 Ω resistor to a spare GPIO so Claude can explore in the dark. The ESP32-CAM even has a built-in flash LED on GPIO4.
 - **Mission from your phone.** Start missions from a phone SSH app such as Termius.
 - **Speak.** Add a small USB or I²S speaker and use `espeak` so the rover reads out what it sees.
 
@@ -94,6 +109,7 @@ Once your rover drives itself, here are ideas, from easy to hard:
 - **Pan camera.** Mount the camera on an **SG90 micro servo** ($3) so the rover can "look left/right" without turning its whole body, like a real rover's mast. Add `look_left` and `look_right` actions.
 - **Bumper switches.** Two micro-switches at the front corners give a reflex for things the ultrasonic sensor misses.
 - **Distance sensor for Option B.** Swap the ESP32-CAM for an **ESP32-S3** camera board (e.g. "XIAO ESP32S3 Sense"), which has more free pins.
+- **Dimmable headlights.** Use PWM (`gpiozero.PWMLED`) so Claude can choose a brightness, not just on/off. Less glare, more battery.
 - **Battery monitor.** Have the rover tell Claude when its batteries are low, so it can "return to base".
 - **Wheel encoders.** Small disks + sensors that count wheel turns, so distances become *measured*, not *guessed*. This is a big step toward real robotics.
 

@@ -76,7 +76,8 @@ Start easy and get harder:
 4. `"Find the door and drive through it into the next room."`
 5. `"Explore the room and find my black backpack. It might be behind the sofa."`
 6. `"There are three colored objects on the floor. Visit each one: red first, then blue, then yellow."`
-7. **Moon mission:** build a "lunar surface" with pillows and books, put a "lander" (any box) somewhere, and use `"You are a lunar rover. Navigate the rough terrain to reach the lander (a cardboard box) without getting stuck."`
+7. **Night mission:** switch the room lights off and try `"Explore the dark room and find the TV remote."` Watch the headlights come on, and see whether Claude switches them off when it reaches a bright area.
+8. **Moon mission:** build a "lunar surface" with pillows and books, put a "lander" (any box) somewhere, and use `"You are a lunar rover. Navigate the rough terrain to reach the lander (a cardboard box) without getting stuck."`
 
 ### Keep it running when your laptop sleeps (Pi only)
 
@@ -97,6 +98,15 @@ To leave it running in the background, press `Ctrl+B` then `D`. To come back to 
 ```bash
 tmux attach -t rover
 ```
+
+### Headlights in missions
+
+Two things control the headlights, and they work together:
+
+1. **Automatic:** before each step, the code measures how bright the photo is, from 0 (black) to 255 (white). If it's below `DARK_THRESHOLD` (60) and the lights are off, it switches them on and takes the photo again, *before* asking Claude. You'll see `It's dark (brightness 23) - headlights on.`
+2. **Claude:** Claude is told whether the lights are on and how bright the photo is. It can choose the moves `lights_on` or `lights_off`, for example switching them off in a bright room to save battery, or on when a corner looks murky even though the photo isn't "dark" overall.
+
+The automatic rule only ever switches the lights **on**. If Claude switches them off in a room that's still dark, they come back on at the next step. Set `AUTO_LIGHTS = False` in `config.py` to leave the lights entirely up to Claude: a fun experiment in how well it judges darkness by itself.
 
 ## Step 4: Review what Claude saw
 
@@ -136,8 +146,8 @@ for step in range(1, max_steps + 1):
 
 ### `rover/brain.py`: talking to Claude
 
-- **`SYSTEM_PROMPT`** is the rover's "job description": what it is, what the camera sees, what moves exist, and driving tips. **This is the main thing to experiment with.** Changing it changes how the rover behaves.
-- **`DECISION_SCHEMA`** is the exact JSON shape Claude must reply with. Because we pass it as `output_config.format`, the API *guarantees* the reply matches it, including that `action` is one of the five allowed words.
+- **`SYSTEM_PROMPT_TEMPLATE`** is the rover's "job description": what it is, what the camera sees, what moves exist, and driving tips. **This is the main thing to experiment with.** Changing it changes how the rover behaves. The light-related lines (`LIGHTS_HELP`, `LIGHTS_TIP`) are only included when the rover has headlights.
+- **`build_schema()`** makes the exact JSON shape Claude must reply with. Because we pass it as `output_config.format`, the API *guarantees* the reply matches it, including that `action` is one of the allowed words: the 5 driving moves, plus `lights_on` / `lights_off` if headlights are fitted.
 - **`decide()`** builds one request with the **photo** (as base64 text) plus the mission, distance and history, then reads back the JSON.
 - `effort: "low"` tells Claude not to overthink each move. That makes it faster and cheaper. Try `--effort medium` for harder missions.
 - `fallbacks="default"`: in the rare case a request is declined by a safety filter, the API automatically retries it on a recommended backup model.
@@ -172,11 +182,11 @@ Or set `CLAUDE_MODEL` in `config.py`. **Experiment!** Compare how well each mode
 
 ## Experiments to try (this is where the learning happens)
 
-1. **Prompt engineering.** Add a sentence to `SYSTEM_PROMPT`, such as *"Prefer to keep obstacles on your left"*, and see whether behaviour changes. What happens if you remove the "Driving tips" entirely?
+1. **Prompt engineering.** Add a sentence to `SYSTEM_PROMPT_TEMPLATE`, such as *"Prefer to keep obstacles on your left"*, and see whether behaviour changes. What happens if you remove the "Driving tips" entirely?
 2. **Camera angle.** Tilt the camera up or down and compare missions. What helps Claude judge distance best?
 3. **Calibration.** Deliberately set `CM_PER_SECOND` wrong by double. How does Claude cope? It gets feedback from each new photo, so it often adapts, which is called *closed-loop control*.
 4. **Memory.** Set `MEMORY_STEPS = 0`. Does the rover get stuck in loops more often? Why?
 5. **Effort.** Run the same mission at `--effort low` and `--effort high`. Compare speed, cost and success.
-6. **New actions.** Add a `"look_around"` action that does 4 × 90° turns and sends all four photos in one request (a mini panorama). You'll need to edit `ACTIONS`, the schema, `decide()` to accept several images, and the loop in `__main__.py`.
+6. **New actions.** Add a `"look_around"` action that does 4 × 90° turns and sends all four photos in one request (a mini panorama). You'll need to edit `DRIVE_ACTIONS`, the prompt, `decide()` to accept several images, and the loop in `__main__.py`. Adding the headlights followed exactly this recipe, so look at how `lights_on` was added for a worked example.
 
 **Next → [6. Troubleshooting & what to build next](06-troubleshooting-and-next-steps.md)**

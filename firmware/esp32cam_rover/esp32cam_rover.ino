@@ -10,6 +10,7 @@
         /capture                -> one JPEG photo
         /drive?l=1&r=1&ms=500   -> left/right wheels (-1, 0, 1) for ms milliseconds
         /stop                   -> stop motors
+        /lights?on=1            -> built-in flash LED on as a headlight (on=0 = off)
     * Your laptop runs the Python "brain" (python -m rover mission --hardware esp32 ...),
       which grabs /capture, asks Claude what to do, then calls /drive.
 
@@ -39,6 +40,9 @@ const int LEFT_IN1  = 14;
 const int LEFT_IN2  = 15;
 const int RIGHT_IN1 = 13;
 const int RIGHT_IN2 = 12;
+
+// The bright white "flash" LED built into the ESP32-CAM board, used as a headlight.
+const int HEADLIGHT_PIN = 4;
 
 // If a side drives backwards when it should go forward, change its 1 to -1.
 const int LEFT_DIRECTION  = 1;
@@ -136,9 +140,12 @@ button{font-size:1.4em;width:4.5em;height:2.5em;margin:.2em;border-radius:8px}
 <div><button onclick="go(1,1)">&#8593;</button></div>
 <div><button onclick="go(-1,1)">&#8634;</button><button onclick="fetch('/stop')">stop</button><button onclick="go(1,-1)">&#8635;</button></div>
 <div><button onclick="go(-1,-1)">&#8595;</button></div>
+<div><button onclick="light()">&#128161;</button></div>
 <script>
 function refresh(){document.getElementById('cam').src='/capture?t='+Date.now();}
 function go(l,r){fetch('/drive?l='+l+'&r='+r+'&ms=400').then(refresh);}
+var lit=0;
+function light(){lit=1-lit;fetch('/lights?on='+lit).then(refresh);}
 </script></body></html>
 )HTML";
 
@@ -169,6 +176,13 @@ void handleDrive() {
   server.send(200, "text/plain", "ok");
 }
 
+void handleLights() {
+  bool on = server.arg("on").toInt() == 1;
+  digitalWrite(HEADLIGHT_PIN, on ? HIGH : LOW);
+  Serial.printf("headlights %s\n", on ? "on" : "off");
+  server.send(200, "text/plain", on ? "lights on" : "lights off");
+}
+
 void handleStop() {
   stopMotors();
   server.send(200, "text/plain", "stopped");
@@ -182,6 +196,9 @@ void setup() {
   pinMode(LEFT_IN1, OUTPUT);  pinMode(LEFT_IN2, OUTPUT);
   pinMode(RIGHT_IN1, OUTPUT); pinMode(RIGHT_IN2, OUTPUT);
   stopMotors();
+
+  pinMode(HEADLIGHT_PIN, OUTPUT);
+  digitalWrite(HEADLIGHT_PIN, LOW);  // headlight off at start
 
   if (!startCamera()) {
     Serial.println("Check the camera ribbon cable, then press RST.");
@@ -201,6 +218,7 @@ void setup() {
   server.on("/capture", handleCapture);
   server.on("/drive", handleDrive);
   server.on("/stop", handleStop);
+  server.on("/lights", handleLights);
   server.begin();
 }
 

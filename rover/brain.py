@@ -25,9 +25,22 @@ import anthropic
 
 from . import config
 
-ACTIONS = ["forward", "backward", "turn_left", "turn_right", "mission_complete"]
+DRIVE_ACTIONS = ["forward", "backward", "turn_left", "turn_right", "mission_complete"]
+LIGHT_ACTIONS = ["lights_on", "lights_off"]
 
-SYSTEM_PROMPT = f"""\
+LIGHTS_HELP = """\
+- lights_on      : switch the headlights on (amount 0). Use it when the photo \
+is too dark to see the floor and obstacles clearly.
+- lights_off     : switch the headlights off (amount 0), e.g. when the room is \
+bright again, to save battery.
+"""
+
+LIGHTS_TIP = """\
+- If the photo is dark or murky and the headlights are off, switch them on \
+before driving: never drive into darkness you can't see.
+"""
+
+SYSTEM_PROMPT_TEMPLATE = f"""\
 You are the driver of a small wheeled rover (about {config.ROVER_LENGTH_CM} cm \
 long), a toy-sized version of a planetary rover. You see the world through \
 one forward-facing camera mounted roughly {config.CAMERA_HEIGHT_CM} cm above \
@@ -42,7 +55,7 @@ your recent moves. You choose exactly ONE move:
 - turn_left N    : spin in place N degrees to the left (1-{config.MAX_TURN_DEGREES})
 - turn_right N   : spin in place N degrees to the right (1-{config.MAX_TURN_DEGREES})
 - mission_complete: stop, because the mission is achieved (amount 0)
-
+{{lights_help}}
 Driving tips:
 - Moves are approximate: wheels slip, so re-check the photo after every move.
 - Prefer several short moves (10-30 cm, 15-45 degrees) over one long one.
@@ -55,23 +68,35 @@ or turn instead of pushing forward.
 - If you seem stuck (same view several times), try something different: \
 back up and turn.
 - To search for something, turn in steps of about 45 degrees to look around.
-
+{{lights_tip}}
 Keep "what_i_see" and "why" to one short sentence each. Use "note_to_self" \
 for anything you want to remember for later steps (it is shown back to you)."""
 
-# The shape Claude's answer must have.
-DECISION_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "what_i_see": {"type": "string"},
-        "why": {"type": "string"},
-        "action": {"type": "string", "enum": ACTIONS},
-        "amount": {"type": "integer"},
-        "note_to_self": {"type": "string"},
-    },
-    "required": ["what_i_see", "why", "action", "amount", "note_to_self"],
-    "additionalProperties": False,
-}
+
+
+def build_system_prompt(has_lights: bool) -> str:
+    """The rover's job description. Light controls only appear if fitted."""
+    return SYSTEM_PROMPT_TEMPLATE.format(
+        lights_help=LIGHTS_HELP if has_lights else "",
+        lights_tip=LIGHTS_TIP if has_lights else "",
+    )
+
+
+def build_schema(has_lights: bool) -> dict:
+    """The shape Claude's answer must have."""
+    actions = DRIVE_ACTIONS + (LIGHT_ACTIONS if has_lights else [])
+    return {
+        "type": "object",
+        "properties": {
+            "what_i_see": {"type": "string"},
+            "why": {"type": "string"},
+            "action": {"type": "string", "enum": actions},
+            "amount": {"type": "integer"},
+            "note_to_self": {"type": "string"},
+        },
+        "required": ["what_i_see", "why", "action", "amount", "note_to_self"],
+        "additionalProperties": False,
+    }
 
 
 @dataclass
@@ -87,19 +112,30 @@ class Decision:
 
 class ClaudeBrain:
     def __init__(self, mission: str, model: str | None = None,
-                 effort: str | None = None):
+                 effort: str | None = None, has_lights: bool = False):
         # Reads your key from the ANTHROPIC_API_KEY environment variable.
         self.client = anthropic.Anthropic()
         self.mission = mission
         self.model = model or config.CLAUDE_MODEL
         self.effort = effort or config.CLAUDE_EFFORT
+        self.has_lights = has_lights
+        self.system_prompt = build_system_prompt(has_lights)
+        self.schema = build_schema(has_lights)
 
     def decide(self, jpeg: bytes, distance_cm: float | None,
-               history: list[str], step: int) -> Decision:
+               history: list[str], step: int, lights_on: bool = False,
+               brightness: float | None = None) -> Decision:
         if distance_cm is None:
             distance_text = "no distance sensor fitted"
         else:
             distance_text = f"{distance_cm:.0f} cm to the nearest object straight ahead"
+
+        light_text = ""
+        if self.has_lights:
+            light_text = f"Headlights: {'ON' if lights_on else 'off'}.\n"
+        if brightness is not None:
+            light_text += (f"Photo brightness: {brightness:.0f} out of 255 "
+                           "(below about 60 is dark).\n")
 
         recent = "\n".join(history[-config.MEMORY_STEPS:]) or "(this is the first step)"
 
@@ -117,7 +153,8 @@ class ClaudeBrain:
                 "text": (
                     f"MISSION: {self.mission}\n\n"
                     f"Step {step} of at most {config.MAX_STEPS}.\n"
-                    f"Distance sensor: {distance_text}.\n\n"
+                    f"Distance sensor: {distance_text}.\n"
+                    f"{light_text}\n"
                     f"Your recent moves (oldest first):\n{recent}\n\n"
                     "The photo above is what the camera sees right now. "
                     "Choose your next move."
@@ -128,11 +165,11 @@ class ClaudeBrain:
         response = self.client.beta.messages.create(
             model=self.model,
             max_tokens=16000,
-            system=SYSTEM_PROMPT,
+            system=self.system_prompt,
             messages=[{"role": "user", "content": user_content}],
             output_config={
                 "effort": self.effort,
-                "format": {"type": "json_schema", "schema": DECISION_SCHEMA},
+                "format": {"type": "json_schema", "schema": self.schema},
             },
             # If a safety filter ever declines a request, let the API retry
             # automatically on a recommended fallback model.

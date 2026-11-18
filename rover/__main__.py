@@ -22,6 +22,7 @@ import time
 
 from . import config
 from .hardware import make_rover
+from .vision import brightness
 
 PROJECT_DIR = pathlib.Path(__file__).resolve().parents[1]
 
@@ -91,6 +92,15 @@ def cmd_check(args) -> None:
             print("3) Motors: use the buttons on the rover's web page, or `teleop`.")
         print("   If a side spun the wrong way, set LEFT/RIGHT_MOTOR_REVERSED in config.py.\n")
 
+        if rover.has_lights:
+            print("3b) Headlights: blinking 3 times...")
+            for _ in range(3):
+                rover.set_lights(True)
+                time.sleep(0.5)
+                rover.set_lights(False)
+                time.sleep(0.5)
+            print("   Did they blink? If not, check the LED wiring (long leg = +).\n")
+
         print("4) Claude: asking Claude to describe the photo...")
         need_api_key()
         import anthropic
@@ -119,6 +129,7 @@ def cmd_teleop(args) -> None:
     print("Keyboard driving. Type a letter then press Enter:")
     print("  w = forward 20 cm   s = back 20 cm")
     print("  a = left 45 deg     d = right 45 deg")
+    print("  l = headlights on/off")
     print("  p = take photo      q = quit\n")
     with open_rover(args) as rover:
         n = 0
@@ -134,6 +145,8 @@ def cmd_teleop(args) -> None:
                 print(rover.turn_left(45))
             elif key == "d":
                 print(rover.turn_right(45))
+            elif key == "l":
+                print(rover.set_lights(not rover.lights_on))
             elif key == "p":
                 n += 1
                 out = PROJECT_DIR / f"teleop_photo_{n}.jpg"
@@ -190,7 +203,9 @@ def write_report(folder: pathlib.Path, mission: str, steps: list[dict]) -> pathl
             f"<p><b>Saw:</b> {html.escape(s['what_i_see'])}</p>"
             f"<p><b>Why:</b> {html.escape(s['why'])}</p>"
             f"<p><b>Note:</b> {html.escape(s['note_to_self'])}</p>"
-            f"<p><b>Distance:</b> {s['distance_cm']} &nbsp; <b>Result:</b> "
+            f"<p><b>Distance:</b> {s['distance_cm']} &nbsp; "
+            f"<b>Brightness:</b> {s['brightness']} &nbsp; "
+            f"<b>Lights:</b> {'on' if s['lights_on'] else 'off'} &nbsp; <b>Result:</b> "
             f"{html.escape(s['result'])}</p></div></div>"
         )
     page = f"""<!doctype html><meta charset="utf-8">
@@ -213,24 +228,39 @@ def cmd_mission(args) -> None:
     import anthropic
     from .brain import ClaudeBrain
 
-    brain = ClaudeBrain(args.mission, model=args.model, effort=args.effort)
     stamp = dt.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     folder = PROJECT_DIR / "missions" / stamp
     folder.mkdir(parents=True, exist_ok=True)
     max_steps = args.max_steps or config.MAX_STEPS
-
-    print(f"MISSION: {args.mission}")
-    print(f"Brain: {brain.model} (effort {brain.effort}). Logging to {folder}")
-    print("Press Ctrl+C at any time to stop the rover.\n")
 
     history: list[str] = []
     steps: list[dict] = []
     tokens_in = tokens_out = 0
 
     with open_rover(args) as rover:
+        brain = ClaudeBrain(args.mission, model=args.model, effort=args.effort,
+                            has_lights=rover.has_lights)
+        print(f"MISSION: {args.mission}")
+        print(f"Brain: {brain.model} (effort {brain.effort}). Logging to {folder}")
+        if rover.has_lights:
+            auto = "auto-on when dark" if config.AUTO_LIGHTS else "Claude-controlled"
+            print(f"Headlights: fitted ({auto})")
+        print("Press Ctrl+C at any time to stop the rover.\n")
         try:
             for step in range(1, max_steps + 1):
                 jpeg = rover.capture_jpeg()
+                light = brightness(jpeg)
+
+                # Automatic headlights: if the photo is too dark, switch the
+                # lights on and take the photo again before asking Claude.
+                if (config.AUTO_LIGHTS and rover.has_lights and not rover.lights_on
+                        and light is not None and light < config.DARK_THRESHOLD):
+                    print(f"   It's dark (brightness {light:.0f}) - headlights on.")
+                    rover.set_lights(True)
+                    time.sleep(0.3)  # let the camera adjust to the light
+                    jpeg = rover.capture_jpeg()
+                    light = brightness(jpeg)
+
                 photo = f"step_{step:03d}.jpg"
                 (folder / photo).write_bytes(jpeg)
                 distance = rover.distance_cm()
@@ -238,7 +268,8 @@ def cmd_mission(args) -> None:
                 print(f"Step {step}: thinking...", flush=True)
                 t0 = time.monotonic()
                 try:
-                    d = brain.decide(jpeg, distance, history, step)
+                    d = brain.decide(jpeg, distance, history, step,
+                                     lights_on=rover.lights_on, brightness=light)
                 except anthropic.AuthenticationError:
                     sys.exit("Your API key was rejected. Check ANTHROPIC_API_KEY.")
                 except anthropic.APIConnectionError:
@@ -267,6 +298,10 @@ def cmd_mission(args) -> None:
                     result = rover.turn_left(d.amount)
                 elif d.action == "turn_right":
                     result = rover.turn_right(d.amount)
+                elif d.action == "lights_on":
+                    result = rover.set_lights(True)
+                elif d.action == "lights_off":
+                    result = rover.set_lights(False)
                 else:
                     result = "unknown action - ignored"
                 if result != "ok":
@@ -278,6 +313,8 @@ def cmd_mission(args) -> None:
                 )
                 record = {"step": step, "photo": photo,
                           "distance_cm": None if distance is None else round(distance),
+                          "brightness": None if light is None else round(light),
+                          "lights_on": rover.lights_on,
                           "result": result, **{k: getattr(d, k) for k in (
                               "what_i_see", "why", "action", "amount", "note_to_self")}}
                 steps.append(record)

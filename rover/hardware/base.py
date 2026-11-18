@@ -22,6 +22,8 @@ class Rover:
     """Base class. Subclasses fill in the hardware-specific bits."""
 
     name = "rover"
+    has_lights = False   # set to True by bodies that have headlights
+    lights_on = False    # current state of the headlights
 
     # ---- things each body must implement ---------------------------------
     def capture_jpeg(self) -> bytes:
@@ -39,8 +41,21 @@ class Rover:
     def stop(self) -> None:
         self.set_motors(0, 0)
 
+    def set_lights(self, on: bool) -> str:
+        """Switch the headlights on/off. Bodies with lights override _lights()."""
+        if not self.has_lights:
+            return "no headlights fitted"
+        self._lights(on)
+        self.lights_on = on
+        return f"headlights {'on' if on else 'off'}"
+
+    def _lights(self, on: bool) -> None:
+        pass
+
     def close(self) -> None:
         self.stop()
+        if self.lights_on:
+            self.set_lights(False)
 
     # ---- movement built on top of set_motors ------------------------------
     def run_for(self, left: float, right: float, seconds: float,

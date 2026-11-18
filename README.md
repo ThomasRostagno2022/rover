@@ -27,7 +27,8 @@ All three options fit the **$100–150 budget**. They use the same Python "brain
 | Looks like | 4-wheel robot car | 4-wheel robot car | 6-wheel rocker-bogie, like a real Mars/Moon rover |
 | Brain runs on | The rover itself (Raspberry Pi Zero 2 W) | Your laptop, over WiFi | The rover itself (Raspberry Pi Zero 2 W) |
 | Obstacle reflex | ✅ ultrasonic sensor | ❌ (camera only) | ✅ ultrasonic sensor |
-| Approx. cost | **~$95–120** | **~$55–75** | **~$130–150** |
+| Headlights | ✅ 2 white LEDs | ✅ built-in flash LED | ✅ 2 white LEDs |
+| Approx. cost | **~$100–125** | **~$55–75** | **~$130–150** |
 | Soldering | None | None | Maybe (depends on kit) |
 | Difficulty | ★★☆ | ★★☆ (finicky to program the first time) | ★★★ (more mechanical building) |
 | You learn | Linux, Python, GPIO, PWM, motor drivers, sensors, AI | Microcontrollers, Arduino/C++, WiFi, web APIs, AI | Everything in A, plus suspension mechanics |
@@ -48,7 +49,7 @@ Work through these in order. Each step ends with something working that you can 
 | 0 | [Concepts for absolute beginners](docs/00-concepts.md) | Learn voltage, current, GPIO, PWM, H-bridges, and how an AI can drive a robot |
 | 1 | [Shopping lists for all 3 options](docs/01-shopping-lists.md) | Buy the right parts, including what to search for and what to avoid |
 | ★ | **Try the brain now, no hardware needed** ([below](#try-claude-driving-before-your-parts-arrive)) | Watch Claude "drive" through photos you took with your phone |
-| 2 | [Build Option A: Pi Rover](docs/02-build-option-a-pi.md) | Assemble, wire, install software, test each part |
+| 2 | [Build Option A: Pi Rover](docs/02-build-option-a-pi.md) | Assemble, wire, install software, add headlights, test each part |
 | 3 | [Build Option B: ESP32-CAM Rover](docs/03-build-option-b-esp32.md) | Assemble, wire, flash firmware, test |
 | 4 | [Build Option C: 6-Wheel Rover](docs/04-option-c-six-wheel.md) | Option A's electronics on a rocker-bogie chassis |
 | 5 | [The Claude brain: missions, prompts, costs](docs/05-claude-brain.md) | Get an API key, run your first autonomous mission, and learn how the code works |
@@ -90,6 +91,7 @@ rover/                     Python package: the software
     pi.py                  Option A/C: Raspberry Pi + camera + TB6612 + ultrasonic
     esp32.py               Option B: talks to the ESP32-CAM over WiFi
     sim.py                 no hardware: photos from a folder
+  vision.py                measures photo brightness (for automatic headlights)
 firmware/esp32cam_rover/   Option B: Arduino program for the ESP32-CAM
 docs/                      the step-by-step guides
 sim_images/                put test photos here for the simulator
@@ -100,7 +102,7 @@ missions/                  created automatically: photos + logs of each run
 
 ```bash
 python -m rover check     --hardware pi       # test camera, distance sensor, motors, Claude
-python -m rover teleop    --hardware pi       # drive it yourself (w/a/s/d + Enter)
+python -m rover teleop    --hardware pi       # drive it yourself (w/a/s/d, l = lights, + Enter)
 python -m rover calibrate --hardware pi       # measure cm/second and degrees/second
 python -m rover mission   --hardware pi "Find the red cup and stop next to it"
 ```

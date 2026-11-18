@@ -6,6 +6,7 @@ web server with these addresses:
     /capture                  -> returns a JPEG photo
     /drive?l=1&r=1&ms=500     -> runs left/right wheels (-1, 0 or 1) for ms
     /stop                     -> stops the motors
+    /lights?on=1              -> built-in flash LED on (on=0 for off)
 
 This Python file runs on your LAPTOP and simply visits those addresses.
 Claude is called from the laptop too, so your API key never lives on the robot.
@@ -24,6 +25,7 @@ from .base import Rover
 
 class Esp32Rover(Rover):
     name = "esp32-cam"
+    has_lights = True  # the ESP32-CAM has a built-in flash LED
 
     def __init__(self, base_url: str | None = None):
         self.base_url = (base_url or config.ESP32_URL).rstrip("/")
@@ -44,6 +46,9 @@ class Esp32Rover(Rover):
 
     def capture_jpeg(self) -> bytes:
         return self._get("/capture")
+
+    def _lights(self, on: bool) -> None:
+        self._get(f"/lights?on={1 if on else 0}")
 
     # The ESP32 version has no distance sensor (the ESP32-CAM has almost no
     # spare pins), so distance_cm() stays None from the base class.
