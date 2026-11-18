@@ -1,0 +1,7 @@
+# Installed on whatever computer runs the "brain":
+#   Option A / C: the Raspberry Pi itself
+#   Option B: your laptop
+anthropic>=2.10
+# On the Raspberry Pi, gpiozero and picamera2 come pre-installed with
+# Raspberry Pi OS. That is why the Pi instructions create the virtual
+# environment with --system-site-packages.

@@ -1,0 +1,11 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+rover-env/
+
+# Mission logs (photos + decisions) - they get big, keep them local
+missions/
+
+# Secrets - NEVER commit your API key
+.env
