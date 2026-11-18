@@ -28,7 +28,7 @@ The SD card is the Pi's "hard drive". We'll put the operating system on it, *Ras
 1. On your laptop, download and install **Raspberry Pi Imager** from https://www.raspberrypi.com/software/.
 2. Put the microSD card into your laptop (use a USB card reader if needed).
 3. Open Raspberry Pi Imager and choose:
-   - **Device:** Raspberry Pi Zero 2 W
+   - **Device:** Raspberry Pi Zero 2 W (or **Raspberry Pi 3** if you're using a Pi 3 A+ because the Zero was sold out)
    - **Operating system:** *Raspberry Pi OS (other)* → **Raspberry Pi OS Lite (64-bit)**. "Lite" has no desktop: we control it by typing commands over WiFi, which is faster and lighter.
    - **Storage:** your SD card. Double-check it's the SD card and not another drive!
 4. Click **Next**. When asked about **OS customisation / settings**, choose **Edit settings** and fill in:
@@ -46,7 +46,7 @@ The SD card is the Pi's "hard drive". We'll put the operating system on it, *Ras
 ## Phase 2: First boot and connecting over WiFi
 
 1. Put the SD card into the Pi's slot (contacts facing the board, and it only fits one way).
-2. Plug a micro-USB cable from a phone charger or your power bank into the port labelled **PWR IN**. The Pi Zero has two micro-USB ports: **PWR IN** is the one nearest the corner. The other, labelled **USB**, is for data.
+2. Plug a micro-USB cable from a phone charger or your power bank into the port labelled **PWR IN**. The Pi Zero has two micro-USB ports: **PWR IN** is the one nearest the corner. The other, labelled **USB**, is for data. (**Pi 3 A+:** it has only one micro-USB port, so use that.)
 3. A small green LED flickers. **Wait 3–5 minutes** the first time, because the Pi sets itself up and may reboot once.
 4. On your laptop, open a terminal:
    - **Mac:** open the *Terminal* app
@@ -155,6 +155,7 @@ Every chassis kit is slightly different, so follow its leaflet if it has one. Th
 ## Phase 5: The camera → test
 
 1. **Power off.** Find the camera connector on the Pi Zero: a thin black latch on the short end, **opposite** the SD card.
+   > **Using a Pi 3 A+?** Its camera connector is the long slot labelled **CAMERA**, between the HDMI port and the audio jack. Use the standard-width (15-pin) cable, lift the latch **upwards**, and insert the cable with the **metal contacts facing the HDMI port**. Everything else in this guide is the same, including every pin number.
 2. Gently **pull the black latch outwards** by about 1–2 mm with your fingernails. Don't pull hard, because it's fragile.
 3. Slide the **narrow end** of the camera ribbon in, with the **shiny metal contacts facing the board** (down). Push the latch back in to lock it. Tug gently: the cable shouldn't come out.
 4. Make sure the other end is locked into the camera board the same way. It usually comes pre-connected.

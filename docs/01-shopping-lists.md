@@ -16,7 +16,7 @@ Prices are **rough US estimates** from Amazon, AliExpress, Adafruit, The Pi Hut,
 
 | # | Part | Search term | Qty | ≈ Price | Notes |
 |---|---|---|---|---|---|
-| 1 | Raspberry Pi Zero 2 **WH** | `Raspberry Pi Zero 2 WH` | 1 | $18–22 | **WH = header pins pre-soldered**, so get WH, not W. The rover's computer. |
+| 1 | Raspberry Pi Zero 2 **WH** | `Raspberry Pi Zero 2 WH` | 1 | $18–22 | **WH = header pins pre-soldered**, so get WH, not W. The rover's computer. **Sold out?** See [If the Pi Zero 2 WH is sold out](#if-the-pi-zero-2-wh-is-sold-out). |
 | 2 | microSD card, 32 GB | `32GB microSD A1 class 10` (SanDisk, Samsung) | 1 | $6–9 | Holds the operating system. Avoid no-name cards. |
 | 3 | Camera for Pi Zero | `Raspberry Pi Zero camera OV5647` | 1 | $10–15 | **Must say "Zero"** or include a Zero cable. The Pi Zero uses a *narrower* camera connector than other Pis. See note ① |
 | 4 | Robot car chassis | `4WD smart robot car chassis kit TT motor` | 1 | $15–22 | Should include 2 acrylic plates, 4 yellow "TT" gear motors, 4 wheels, screws, spacers, and a battery holder. Prefer motors **with wires already soldered**. |
@@ -137,6 +137,27 @@ These links were checked in **November 2026**. Stores run out of stock and Amazo
 | 14 | White LEDs (headlights) | [Adafruit 754: Super Bright White 5mm, 25-pack](https://www.adafruit.com/product/754) ($6.95) | | 3.0 V, 20 mA, narrow ~25° beam: good headlights. |
 | 15 | Resistor kit | [Amazon: ALLECIN 25-value 1/4 W kit](https://www.amazon.com/ALLECIN-1-4w-Resistor-Kit/dp/B0CQCMDF95) | [Amazon search: 1/4 watt resistor kit](https://www.amazon.com/s?k=1%2F4+watt+resistor+kit) | Needs 47 Ω, 100 Ω and 1 kΩ. |
 | 16 | PN2222 transistors | [Amazon: Adafruit PN2222 10-pack](https://www.amazon.com/Adafruit-NPN-Bipolar-Transistors-PN2222/dp/B00XW2OK7M) | [Amazon: PN2222A 10-pack (onsemi)](https://www.amazon.com/Juried-Engineering-Semiconductor-PN2222-Transistors/dp/B08CGPFDD4) | Pinout **E-B-C** with the flat side facing you. |
+
+### If the Pi Zero 2 WH is sold out
+
+In 2026 the Pi Zero 2 W is often out of stock everywhere. Raspberry Pi has said demand is very high and chip-packaging shortages, caused by the AI hardware boom, limit production. **You don't have to wait.** Here are your choices, best first:
+
+| Choice | Price | Code changes? | What's different |
+|---|---|---|---|
+| **1. Raspberry Pi 3 Model A+** ⭐ | ~$25 | **None** | Same 40 pins, already soldered, so all wiring tables still apply. A bit bigger (65 × 56 mm) and uses a bit more power. Uses the **standard** camera cable, not the Zero one. In production until at least 2030. |
+| 2. Pi Zero 2 W *without* header + a hammer-in header | ~$15 + ~$8 | None | No soldering: you tap the pins in with a hammer and a jig. Fiddly but works. Only worth it if the no-header version is in stock. |
+| 3. Raspberry Pi 4 Model B (1 or 2 GB) | ~$45–60 | None | Works, but bigger (85 × 56 mm), pricier, and needs a power bank with **USB-C, 3 A** output. |
+| 4. Switch to **Option B** (ESP32-CAM) | ~$15 for 2 | — | No Raspberry Pi at all; your laptop is the brain. |
+
+**Where to buy the Pi 3 A+:** [PiShop](https://www.pishop.us/product/raspberry-pi-3-model-a-plus-512mb-ram/) · [Adafruit 4027](https://www.adafruit.com/product/4027) · [SparkFun](https://www.sparkfun.com/raspberry-pi-3-a.html) · [CanaKit](https://www.canakit.com/raspberry-pi-3-model-a-plus.html) · [Micro Center](https://www.microcenter.com/product/514076/raspberry-pi-3-model-a-board) · Europe: [Kubii](https://www.kubii.com/en/nano-computers/2334-raspberry-pi-3-a-models-3272496313453.html) (~€28.50) · UK: [The Pi Hut](https://thepihut.com/products/raspberry-pi-3-model-a-plus) · all official sellers: [raspberrypi.com](https://www.raspberrypi.com/products/raspberry-pi-3-model-a-plus/)
+
+**If you go with the Pi 3 A+, change these two things:**
+1. **Camera cable:** you need the **standard 15-pin to 15-pin** ribbon, *not* the narrow Pi Zero one. The [Arducam kit](https://www.arducam.com/b0033b0087-arducam-5mp-ov5647-mini-camera-video-module-with-15-pin-1-0mm-pitch-to-22-pin-0-5mm-and-15pin-to-15pin-1-0mm-ribbon-cable-for-raspberry-pi-model-a-b-b-pi-2-pi-3-pi-4-and-pi-zero.html) includes **both** cables, so it works either way. Avoid cameras sold as "for Pi Zero only".
+2. **Power:** it still uses micro-USB, but wants a bit more current. Use a power bank with **2.4 A** (or more) output.
+
+**Hammer-in header (choice 2):** [Pimoroni GPIO Hammer Header kit](https://shop.pimoroni.com/collections/raspberry-pi/products/gpio-hammer-header) (get the version *with the jig*) · [PiShop (male header)](https://www.pishop.us/product/hammer-header-male-solderless-raspberry-pi-connector/)
+
+**Get alerted when Pi Zeros come back:** [rpilocator.com](https://rpilocator.com) tracks stock at official sellers and can notify you.
 
 ### Option B extras
 
