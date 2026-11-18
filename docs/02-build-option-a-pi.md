@@ -174,6 +174,28 @@ Every chassis kit is slightly different, so follow its leaflet if it has one. Th
    ```
    Open `test.jpg`. Blurry? Some cheap cameras have a focus ring you can gently twist.
 
+### Using a USB webcam instead
+
+If no Raspberry Pi camera was available, a normal USB webcam works too (Pi 3 / Pi 4 only, since they have full-size USB ports).
+
+1. Install the library that reads webcams (one time, on the Pi):
+   ```bash
+   sudo apt install -y python3-opencv
+   ```
+2. Plug the webcam into any USB port, then check the Pi sees it:
+   ```bash
+   ls /dev/video*
+   ```
+   You should see `/dev/video0` (maybe more).
+3. In `rover/config.py`, set:
+   ```python
+   CAMERA_TYPE = "usb"
+   CAMERA_FOV_DEGREES = 60   # check your webcam's specs; most are 55–90
+   ```
+4. Run `python -m rover check --hardware pi`. It saves `test_photo.jpg`, just like with a Pi camera.
+
+Webcams are bulkier, so zip-tie or tape the webcam's clip to the front edge of the top plate, tilted slightly down. Coil up the extra cable so it can't reach the wheels.
+
 **Mounting the camera:** stick it to the **front edge of the top plate** with foam tape, **tilted slightly downwards** (about 10–15°). It should see the floor starting about 20–30 cm in front of the rover, plus the room beyond. If photos come out upside down, set `CAMERA_UPSIDE_DOWN = True` in `rover/config.py`.
 
 ---

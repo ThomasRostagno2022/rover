@@ -32,6 +32,12 @@ IMAGE_WIDTH = 640
 IMAGE_HEIGHT = 480
 # Set to True if your photos come out upside down (camera mounted flipped).
 CAMERA_UPSIDE_DOWN = False
+# Which kind of camera (Option A / C):
+#   "pi"  = a ribbon-cable Raspberry Pi camera (Camera Module 3, OV5647, ...)
+#   "usb" = an ordinary USB webcam plugged into the Pi
+#           (needs: sudo apt install -y python3-opencv)
+CAMERA_TYPE = "pi"
+USB_CAMERA_INDEX = 0   # 0 = the first webcam plugged in
 # Told to Claude so it can judge distances. Measure yours!
 CAMERA_HEIGHT_CM = 10        # Option C with a camera mast: maybe 20-25
 CAMERA_FOV_DEGREES = 60      # ~60 for standard cameras, ~120 for wide-angle

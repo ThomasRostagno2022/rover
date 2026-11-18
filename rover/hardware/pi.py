@@ -52,7 +52,10 @@ class PiRover(Rover):
             self.has_lights = True
 
         self.camera = None
-        if use_camera:
+        self.usbcam = None
+        if use_camera and config.CAMERA_TYPE == "usb":
+            self._start_usb_camera()
+        elif use_camera:
             from picamera2 import Picamera2
             from libcamera import Transform
 
@@ -72,7 +75,51 @@ class PiRover(Rover):
         else:
             self.headlight.off()
 
+    def _start_usb_camera(self) -> None:
+        """Open a USB webcam with OpenCV (a popular computer-vision library)."""
+        try:
+            import cv2
+        except ImportError:
+            raise SystemExit(
+                "CAMERA_TYPE is \"usb\" but OpenCV isn't installed. Run:\n"
+                "    sudo apt install -y python3-opencv"
+            )
+        self._cv2 = cv2
+        cam = cv2.VideoCapture(config.USB_CAMERA_INDEX, cv2.CAP_V4L2)
+        if not cam.isOpened():
+            raise SystemExit(
+                f"No USB webcam found at index {config.USB_CAMERA_INDEX}. Is it "
+                "plugged in? Run `ls /dev/video*` to see the cameras the Pi "
+                "can find, and try USB_CAMERA_INDEX = 1 or 2 in config.py."
+            )
+        cam.set(cv2.CAP_PROP_FRAME_WIDTH, config.IMAGE_WIDTH)
+        cam.set(cv2.CAP_PROP_FRAME_HEIGHT, config.IMAGE_HEIGHT)
+        cam.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+        self.usbcam = cam
+        time.sleep(1.5)  # let the webcam adjust exposure / white balance
+
+    def _capture_usb_jpeg(self) -> bytes:
+        cv2 = self._cv2
+        # Webcams keep a few old frames queued up. Throw them away so the
+        # photo shows what's in front of the rover NOW, not before the move.
+        for _ in range(4):
+            self.usbcam.grab()
+        ok, frame = self.usbcam.read()
+        if not ok or frame is None:
+            raise RuntimeError("The USB webcam didn't return a picture. Try unplugging it and plugging it back in.")
+        h, w = frame.shape[:2]
+        if (w, h) != (config.IMAGE_WIDTH, config.IMAGE_HEIGHT):
+            frame = cv2.resize(frame, (config.IMAGE_WIDTH, config.IMAGE_HEIGHT))
+        if config.CAMERA_UPSIDE_DOWN:
+            frame = cv2.rotate(frame, cv2.ROTATE_180)
+        ok, buf = cv2.imencode(".jpg", frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
+        if not ok:
+            raise RuntimeError("Couldn't convert the webcam picture to JPEG.")
+        return buf.tobytes()
+
     def capture_jpeg(self) -> bytes:
+        if self.usbcam is not None:
+            return self._capture_usb_jpeg()
         if self.camera is None:
             raise RuntimeError("Camera was not started")
         buf = io.BytesIO()
@@ -105,6 +152,8 @@ class PiRover(Rover):
         super().close()  # stops motors and switches the lights off
         if self.headlight is not None:
             self.headlight.close()
+        if self.usbcam is not None:
+            self.usbcam.release()
         if self.camera is not None:
             self.camera.stop()
             self.camera.close()

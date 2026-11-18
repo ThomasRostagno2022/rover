@@ -31,6 +31,7 @@ ssh-keygen -R rover.local
 - Power off and **re-seat the ribbon cable** at both ends. The contacts must face the right way (toward the board on the Pi Zero) and the latch must be fully closed.
 - Pi Zero: make sure you're using the narrow **Zero** cable. Pi 3 / Pi 4: the standard **15-pin** cable.
 - Third-party OV5647 camera still not found? Tell the Pi which camera it is. Run `sudo nano /boot/firmware/config.txt`, change `camera_auto_detect=1` to `camera_auto_detect=0`, add a line `dtoverlay=ov5647` at the bottom under `[all]`, save, and reboot (`sudo reboot`).
+- **USB webcam:** `No USB webcam found` → check `ls /dev/video*`. If you see `video0` but it still fails, try `USB_CAMERA_INDEX = 1` (some webcams create two entries). Photos look old or out of date → that's buffering, which the code flushes; if it persists, unplug and replug the webcam.
 - Set `CAMERA_FOV_DEGREES` in `rover/config.py` to match your camera: about **66** for Camera Module 3, **54** for OV5647, **102** for Camera Module 3 Wide.
 - ESP32-CAM: the tiny camera connector latch flips up. Make sure the ribbon is fully in before closing it.
 
