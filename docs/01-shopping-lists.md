@@ -157,6 +157,8 @@ In 2026 the Pi Zero 2 W is often out of stock everywhere. Raspberry Pi has said 
 
 **Hammer-in header (choice 2):** [Pimoroni GPIO Hammer Header kit](https://shop.pimoroni.com/collections/raspberry-pi/products/gpio-hammer-header) (get the version *with the jig*) · [PiShop (male header)](https://www.pishop.us/product/hammer-header-male-solderless-raspberry-pi-connector/)
 
+**Raspberry Pi 3 Model B+** (~$35–45) is often in stock when the smaller boards aren't. When I searched, these sellers listed it as in stock: [SparkFun (US)](https://www.sparkfun.com/raspberry-pi-3-b.html) · [RS (Ireland/EU)](https://ie.rs-online.com/web/p/raspberry-pi/1373331) · [SOS Electronic (EU)](https://soselectronic.com/en-fr/products/raspberry-pi/raspberry-pi-3-model-b-1-292268?settings=1). It fits the top plate, takes the standard camera cable and works with the code unchanged. Every official seller in your country is listed under **Buy** on [raspberrypi.com](https://www.raspberrypi.com/products/raspberry-pi-3-model-b-plus/).
+
 **Any Raspberry Pi from the Pi 3 onward works with this project, with no code changes:** Pi Zero 2 W, Pi 3 A+, Pi 3 B, Pi 3 B+, Pi 4, Pi 5. That makes a **used board** a good option: check eBay, Facebook Marketplace, or local classifieds (e.g. leboncoin in France). Ask the seller to confirm it boots. Notes:
 - **Pi 3 B / 3 B+:** bigger (85 × 56 mm) but fits the top plate; standard camera cable; micro-USB power, 2.5 A.
 - **Pi 5:** uses the *narrow* camera cable (like the Zero); wants a 5 A USB-C supply, but runs this rover fine on a 3 A power bank because nothing is plugged into its USB ports.
@@ -191,7 +193,7 @@ Every part is available on Amazon (amazon.com). These links were found in **Nove
 | Mini breadboards | [DaFuRui 12-pack, sticky back](https://www.amazon.com/DaFuRui-tie-Points-Solderless-Breadboard-Compatible/dp/B07KGQ7H8B) | [search](https://www.amazon.com/s?k=mini+breadboard+170) |
 | White LEDs | [CHANZON 100× 5 mm white, 3 V 20 mA](https://www.amazon.com/Transparent-Intensity-Lighting-Electronics-Components/dp/B01AUI4VQU) | [search](https://www.amazon.com/s?k=5mm+white+led+100+pack) |
 | Resistor kit | [ALLECIN 25 values](https://www.amazon.com/ALLECIN-1-4w-Resistor-Kit/dp/B0CQCMDF95) | [search](https://www.amazon.com/s?k=1%2F4+watt+resistor+kit) |
-| PN2222 transistors | [Adafruit PN2222 10-pack](https://www.amazon.com/Adafruit-NPN-Bipolar-Transistors-PN2222/dp/B00XW2OK7M) | [search](https://www.amazon.com/s?k=pn2222a+transistor) |
+| PN2222 transistors | [Adafruit PN2222 10-pack](https://www.amazon.com/Adafruit-NPN-Bipolar-Transistors-PN2222/dp/B00XW2OK7M) · **sold out? use 2N3904:** [microtivity 10-pack](https://www.amazon.com/microtivity-Bipolar-Amplifier-Switching-Transistors/dp/B0092CRKDC) · [100-pack](https://www.amazon.com/2N3904-Transistors-Switching-Amplifier-Components/dp/B0GQMT6VRC) | [search 2N3904](https://www.amazon.com/s?k=2n3904+transistor) |
 | Foam tape, zip ties | — | [foam mounting tape](https://www.amazon.com/s?k=double+sided+foam+mounting+tape) |
 | Option C: extra TT motors + wheels | [Stemedu 4 sets](https://www.amazon.com/Gearbox-Motor-200RPM-Wheel-Arduino/dp/B07R13MLJD) | [search](https://www.amazon.com/s?k=tt+motor+65mm+wheel+4+sets) |
 

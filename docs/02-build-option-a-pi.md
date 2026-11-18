@@ -338,7 +338,7 @@ Build it on the breadboard:
 
 | ✔ | Connection |
 |---|---|
-| ☐ | Push the **transistor** into the breadboard, each leg in its own row. With the **flat side facing you**, a PN2222A's legs are **E, B, C** from left to right. ⚠️ Other transistor types (e.g. some "2N2222") have a different order, so check the listing or datasheet. |
+| ☐ | Push the **transistor** into the breadboard, each leg in its own row. With the **flat side facing you**, a PN2222A's legs are **E, B, C** from left to right. A **2N3904** works exactly the same and has the same E, B, C order, so use it if PN2222s are sold out. ⚠️ Other transistor types (e.g. some "2N2222", or the BC547/BC337 common in Europe, which are C, B, E) have a different order, so check the listing or datasheet. |
 | ☐ | **Pi pin 37** (GPIO26) → a **1 kΩ** resistor → the **B** (base) row |
 | ☐ | **E** (emitter) row → **Pi pin 39** (GND) |
 | ☐ | **Pi pin 4** (5V) → a free row (the "5 V row") |
