@@ -53,6 +53,8 @@ Work through these in order. Each step ends with something working that you can 
 | 3 | [Build Option B: ESP32-CAM Rover](docs/03-build-option-b-esp32.md) | Assemble, wire, flash firmware, test |
 | 4 | [Build Option C: 6-Wheel Rover](docs/04-option-c-six-wheel.md) | Option A's electronics on a rocker-bogie chassis |
 | 5 | [The Claude brain: missions, prompts, costs](docs/05-claude-brain.md) | Get an API key, run your first autonomous mission, and learn how the code works |
+| ★ | **[See it in 3D](https://claude.ai/artifact/VqTWkRmQ2hFEWxdDdbjGNp)** (or `cad/`) | Spin the model, explode it, see what the camera sees |
+| ★ | [What it can really do](docs/07-what-it-can-really-do.md) | Honest speed, vision, terrain, battery and cost numbers, and which missions will work |
 | 6 | [Troubleshooting + what to build next](docs/06-troubleshooting-and-next-steps.md) | Fix common problems, then add upgrades such as a pan camera, mapping and voice |
 
 ---
@@ -93,6 +95,7 @@ rover/                     Python package: the software
     sim.py                 no hardware: photos from a folder
   vision.py                measures photo brightness (told to Claude for headlight decisions)
 firmware/esp32cam_rover/   Option B: Arduino program for the ESP32-CAM
+cad/                       3D model: OpenSCAD file + interactive viewer
 docs/                      the step-by-step guides
 sim_images/                put test photos here for the simulator
 missions/                  created automatically: photos + logs of each run

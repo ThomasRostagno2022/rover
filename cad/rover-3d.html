@@ -1,0 +1,809 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Moon Rover 3D</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap">
+<style>
+/* Layout: an engineering-drawing workbench. Big 3D stage on the left,
+   a spec sheet on the right; stacks to one column on phones. */
+:root {
+  --bg: #eef0ec;          /* drafting-paper grey-green */
+  --surface: #f8f9f6;
+  --stage: #dfe3dc;
+  --ink: #1d2420;
+  --muted: #5d6862;
+  --line: #c4cbc3;
+  --accent: #c8541f;      /* mission orange */
+  --accent-ink: #ffffff;
+  --sel: #1f6f8b;
+  --font-display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141917; --surface: #1b211e; --stage: #0f1311; --ink: #e5ebe6;
+    --muted: #93a099; --line: #2f3833; --accent: #e8763f; --accent-ink: #160b05;
+    --sel: #5fb3cf; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141917; --surface: #1b211e; --stage: #0f1311; --ink: #e5ebe6;
+  --muted: #93a099; --line: #2f3833; --accent: #e8763f; --accent-ink: #160b05;
+  --sel: #5fb3cf; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body);
+  font-size: 14px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px 24px;
+}
+header {
+  display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between;
+  gap: 12px 24px; max-width: 1280px; margin: 0 auto 12px;
+}
+h1 {
+  font-family: var(--font-display); font-weight: 700; font-size: 28px;
+  letter-spacing: 0.01em; margin: 0; text-wrap: balance; line-height: 1.1;
+}
+.sub { color: var(--muted); margin: 4px 0 0; max-width: 62ch; }
+.variants { display: flex; gap: 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.variants button {
+  font: 500 13px var(--font-body); color: var(--ink); background: var(--surface);
+  border: 0; border-right: 1px solid var(--line); padding: 8px 14px; cursor: pointer;
+}
+.variants button:last-child { border-right: 0; }
+.variants button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.variants button:focus-visible, .toggles label:focus-within, .parts button:focus-visible {
+  outline: 2px solid var(--sel); outline-offset: 2px;
+}
+.layout {
+  display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px;
+  max-width: 1280px; margin: 0 auto;
+}
+@media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+.stage {
+  position: relative; background: var(--stage); border: 1px solid var(--line);
+  border-radius: 10px; overflow: hidden; height: min(72vh, 640px); min-height: 380px;
+}
+#c { display: block; width: 100%; height: 100%; touch-action: none; }
+.pip-label {
+  position: absolute; right: 12px; pointer-events: none;
+  font: 500 11px var(--font-mono); letter-spacing: 0.04em; text-transform: uppercase;
+  color: #fff; background: rgba(0,0,0,0.55); padding: 2px 6px; border-radius: 4px;
+}
+.hint {
+  position: absolute; left: 12px; bottom: 30px; font: 12px var(--font-mono);
+  color: var(--muted); pointer-events: none;
+}
+.scalebar {
+  position: absolute; left: 12px; bottom: 10px; font: 12px var(--font-mono);
+  color: var(--muted); pointer-events: none;
+}
+aside { display: grid; gap: 12px; align-content: start; min-width: 0; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; min-width: 0; }
+.panel h2 {
+  font: 600 12px var(--font-body); text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted); margin: 0 0 8px;
+}
+.toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+.toggles label { display: flex; gap: 6px; align-items: center; cursor: pointer; font-size: 13px; }
+.toggles input { accent-color: var(--accent); }
+.specs { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin: 0; font-size: 13px; }
+.specs dt { color: var(--muted); }
+.specs dd { margin: 0; font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; }
+.parts { display: flex; flex-wrap: wrap; gap: 6px; }
+.parts button {
+  font: 12px var(--font-body); color: var(--ink); background: transparent;
+  border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; cursor: pointer;
+}
+.parts button[aria-pressed="true"] { border-color: var(--sel); color: var(--sel); font-weight: 600; }
+#info h3 { font: 600 16px var(--font-display); margin: 0 0 4px; letter-spacing: 0.01em; }
+#info p { margin: 4px 0; }
+#info .size { font: 12px var(--font-mono); color: var(--muted); }
+#info a { color: var(--sel); }
+.note { color: var(--muted); font-size: 12px; margin: 0; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<header>
+  <div>
+    <h1>Moon Rover 3D</h1>
+    <p class="sub">Your Claude-driven rover at real size, in millimetres. Spin it, pull it apart, click any part, and see what its camera sees.</p>
+  </div>
+  <div class="variants" role="group" aria-label="Build option">
+    <button type="button" data-v="A" aria-pressed="true">A · Pi Rover</button>
+    <button type="button" data-v="B" aria-pressed="false">B · ESP32-CAM</button>
+    <button type="button" data-v="C" aria-pressed="false">C · 6-wheel</button>
+  </div>
+</header>
+
+<div class="layout">
+  <section class="stage" aria-label="3D view of the rover">
+    <canvas id="c"></canvas>
+    <div class="hint">Drag to orbit · scroll or pinch to zoom · click a part</div>
+    <div class="scalebar">Floor grid: 10 cm squares</div>
+    <div class="pip-label" id="pipLabel">What Claude sees</div>
+  </section>
+
+  <aside>
+    <div class="panel">
+      <h2>View</h2>
+      <div class="toggles">
+        <label><input type="checkbox" id="tExplode"> Exploded</label>
+        <label><input type="checkbox" id="tPip" checked> Rover's-eye view</label>
+        <label><input type="checkbox" id="tFov" checked> Camera view cone</label>
+        <label><input type="checkbox" id="tSonar"> Sensor beam</label>
+        <label><input type="checkbox" id="tLights"> Headlights on</label>
+        <label><input type="checkbox" id="tDark"> Dark room</label>
+        <label><input type="checkbox" id="tProps" checked> Room objects</label>
+        <label><input type="checkbox" id="tSpin"> Turntable</label>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Size &amp; numbers</h2>
+      <dl class="specs" id="specs"></dl>
+    </div>
+
+    <div class="panel" id="info" aria-live="polite">
+      <h2>Selected part</h2>
+      <h3>Click a part</h3>
+      <p class="note">Click anything on the rover (or a name below) to see what it does and where to buy it.</p>
+    </div>
+
+    <div class="panel">
+      <h2>Parts in this build</h2>
+      <div class="parts" id="partList"></div>
+    </div>
+  </aside>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(() => {
+"use strict";
+// ---------------------------------------------------------------- part info
+// Units everywhere: millimetres. Rover faces +X, up is +Y.
+const INFO = {
+  plateBottom: { name: "Bottom plate (acrylic)", role: "The skeleton. Motors bolt underneath; batteries and the motor driver sit on top.", size: "260 × 150 × 3 mm", link: "https://www.amazon.com/4WD-Robot-Chassis-Robotics-Raspberry/dp/B0G5N8P9YF", label: "4WD 2-layer chassis kit" },
+  plateTop: { name: "Top plate (acrylic)", role: "Second deck for the computer, power bank, camera and headlights.", size: "260 × 150 × 3 mm", link: "https://www.amazon.com/4WD-Robot-Chassis-Robotics-Raspberry/dp/B0G5N8P9YF", label: "comes with the chassis kit" },
+  standoffs: { name: "Brass spacers", role: "Hold the top plate 35 mm above the bottom plate, leaving room for wiring in between.", size: "M3 × 35 mm, ×6", link: "https://www.amazon.com/4WD-Robot-Chassis-Robotics-Raspberry/dp/B0G5N8P9YF", label: "comes with the chassis kit" },
+  motors: { name: "TT gear motors ×4", role: "The muscles. 1:48 gearbox, about 200 RPM at 6 V. Left pair and right pair are wired together (skid steering).", size: "≈65 × 22 × 19 mm each", link: "https://www.amazon.com/4WD-Robot-Chassis-Robotics-Raspberry/dp/B0G5N8P9YF", label: "comes with the chassis kit" },
+  motors6: { name: "TT gear motors ×6", role: "One per wheel. Front + middle on each side share a driver channel; the rear ones get the second driver board.", size: "≈65 × 22 × 19 mm each", link: "https://www.amazon.com/Gearbox-Motor-200RPM-Wheel-Arduino/dp/B07R13MLJD", label: "TT motor + wheel sets" },
+  wheels: { name: "Wheels", role: "65 mm rubber tyres. One wheel turn ≈ 20 cm of travel.", size: "Ø65 × 26 mm", link: "https://www.amazon.com/4WD-Robot-Chassis-Robotics-Raspberry/dp/B0G5N8P9YF", label: "comes with the chassis kit" },
+  battery: { name: "4×AA battery pack", role: "Motor power only (≈4.8–6 V). Kept separate from the computer so motor noise can't crash it.", size: "≈71 × 20 × 65 mm", link: "https://www.sparkfun.com/battery-holder-4xaa-with-cover-and-switch.html", label: "SparkFun PRT-12083" },
+  breadboard: { name: "Mini breadboard", role: "Solder-free wiring hub. The motor driver plugs in here and the jumper wires meet it.", size: "46 × 35 × 9 mm", link: "https://www.adafruit.com/product/65", label: "Adafruit 65" },
+  driver: { name: "TB6612FNG motor driver", role: "Two H-bridges: turns the computer's tiny 3.3 V signals into real motor current, forwards or backwards.", size: "≈25 × 20 mm", link: "https://www.sparkfun.com/sparkfun-motor-driver-dual-tb6612fng-with-headers.html", label: "SparkFun, pins soldered" },
+  driver2: { name: "TB6612FNG motor drivers ×2", role: "Six motors need more current than one board gives, so two boards share the same control wires.", size: "≈25 × 20 mm each", link: "https://www.sparkfun.com/sparkfun-motor-driver-dual-tb6612fng-with-headers.html", label: "SparkFun, pins soldered" },
+  pi: { name: "Raspberry Pi Zero 2 WH", role: "The rover's computer. Runs Python, takes photos, talks to Claude over WiFi and drives the motors.", size: "65 × 30 mm, 10 g", link: "https://www.pishop.us/product/raspberry-pi-zero-2w-with-headers/", label: "PiShop" },
+  bank: { name: "USB power bank", role: "Powers the computer (5 V). A 5000 mAh bank runs a Pi Zero for roughly 4–6 hours.", size: "≈90 × 62 × 15 mm", link: "https://www.amazon.com/s?k=slim+power+bank+5000mah", label: "Amazon search" },
+  camera: { name: "Camera (OV5647)", role: "Claude's eye. Takes a 640×480 photo before every move. About 60° wide, tilted 12° down.", size: "25 × 24 mm board", link: "https://www.arducam.com/b0033b0087-arducam-5mp-ov5647-mini-camera-video-module-with-15-pin-1-0mm-pitch-to-22-pin-0-5mm-and-15pin-to-15pin-1-0mm-ribbon-cable-for-raspberry-pi-model-a-b-b-pi-2-pi-3-pi-4-and-pi-zero.html", label: "Arducam with Pi Zero cable" },
+  sonar: { name: "Ultrasonic distance sensor", role: "The reflex. Pings 20× a second while driving forward and brakes if anything is closer than 20 cm.", size: "45 × 20 mm, range ≈2–250 cm", link: "https://www.amazon.com/JESSINIE-RCWL-1601-Ultrasonic-Ranging-Compatible/dp/B0CB3YCFYY", label: "RCWL-1601, 3–5 V" },
+  leds: { name: "Headlights (2 white LEDs)", role: "Claude switches these on when photos get too dark. Switched by a PN2222 transistor from the Pi's 5 V pin.", size: "5 mm LEDs, ≈25° beam", link: "https://www.adafruit.com/product/754", label: "Adafruit 754" },
+  wires: { name: "Jumper wires", role: "Signals from the computer's pins to the motor driver, plus battery and motor leads.", size: "15 cm Dupont wires", link: "https://www.adafruit.com/product/266", label: "Adafruit 266 / 826" },
+  esp32: { name: "ESP32-CAM", role: "Camera + WiFi + motor control in one cheap board. Your laptop runs the Claude brain and sends it moves over WiFi.", size: "27 × 40 mm", link: "https://www.amazon.com/AITRIP-ESP32-CAM-ESP32-CAM-MB-Compatible-Raspberry/dp/B097BLT24K", label: "2-pack with programmer" },
+  flash: { name: "Built-in flash LED", role: "The ESP32-CAM's own white LED, used as the headlight. Gets warm if left on for a long time.", size: "on the ESP32-CAM board", link: "https://www.amazon.com/AITRIP-ESP32-CAM-ESP32-CAM-MB-Compatible-Raspberry/dp/B097BLT24K", label: "part of the ESP32-CAM" },
+  body: { name: "Body (food container)", role: "Holds the batteries and electronics. The rockers pivot on bolts through its side walls.", size: "≈200 × 120 × 60 mm", link: "", label: "" },
+  rockers: { name: "Rockers", role: "Main suspension arms. Each swings on a bolt in the body wall and carries the front wheel plus the bogie.", size: "foam board / plywood, V-shaped", link: "", label: "" },
+  bogies: { name: "Bogies", role: "Smaller arms carrying the middle and rear wheels. They tilt independently so all six wheels stay on the ground.", size: "foam board / plywood", link: "", label: "" },
+  diff: { name: "Differential bar", role: "See-saw across the top. When one rocker tilts up, the other tilts down, so the body stays at the average angle.", size: "150 mm bar + 2 wire links", link: "", label: "" },
+  mast: { name: "Camera mast", role: "Lifts the camera to ≈27 cm so Claude can see over obstacles, like a real rover's mast camera.", size: "dowel or pencil, 15–20 cm", link: "", label: "" },
+};
+
+// ---------------------------------------------------------------- three.js setup
+const canvas = document.getElementById("c");
+const stageEl = canvas.parentElement;
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(35, 1, 5, 20000);
+camera.position.set(430, 290, 520);
+const controls = new THREE.OrbitControls(camera, canvas);
+controls.target.set(20, 70, 0);
+controls.enableDamping = true;
+controls.minDistance = 180;
+controls.maxDistance = 3000;
+controls.maxPolarAngle = Math.PI * 0.495;
+
+const hemi = new THREE.HemisphereLight(0xffffff, 0x8a8f86, 0.75);
+scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xffffff, 0.85);
+sun.position.set(400, 900, 500);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -700, right: 700, top: 700, bottom: -700, near: 100, far: 2500 });
+scene.add(sun);
+
+// floor + 10 cm grid
+const floorMat = new THREE.MeshStandardMaterial({ color: 0xc3c8bf, roughness: 0.95 });
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(6000, 6000), floorMat);
+floor.rotation.x = -Math.PI / 2;
+floor.receiveShadow = true;
+scene.add(floor);
+const grid = new THREE.GridHelper(4000, 40, 0x8c958d, 0xa9b1a8);
+grid.position.y = 0.5;
+scene.add(grid);
+
+// ---------------------------------------------------------------- helpers
+const M = (color, o = {}) => new THREE.MeshStandardMaterial(Object.assign({ color, roughness: 0.6, metalness: 0.05 }, o));
+function mesh(geo, mat, x, y, z) {
+  const m = new THREE.Mesh(geo, mat);
+  m.position.set(x || 0, y || 0, z || 0);
+  m.castShadow = true; m.receiveShadow = true;
+  return m;
+}
+const box = (w, h, d, mat, x, y, z) => mesh(new THREE.BoxGeometry(w, h, d), mat, x, y, z);
+// cylinder with its axis along "x", "y" or "z"
+function cyl(r, len, mat, axis, x, y, z, seg = 32) {
+  const m = mesh(new THREE.CylinderGeometry(r, r, len, seg), mat, x, y, z);
+  if (axis === "x") m.rotation.z = Math.PI / 2;
+  if (axis === "z") m.rotation.x = Math.PI / 2;
+  return m;
+}
+// a flat bar between two points in the X-Y plane (for rover arms)
+function bar(p1, p2, thick, width, z, mat) {
+  const dx = p2[0] - p1[0], dy = p2[1] - p1[1];
+  const len = Math.hypot(dx, dy);
+  const m = box(len + width * 0.6, width, thick, mat, (p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2, z);
+  m.rotation.z = Math.atan2(dy, dx);
+  return m;
+}
+function wire(points, color, r = 1.1) {
+  const curve = new THREE.CatmullRomCurve3(points.map(p => new THREE.Vector3(p[0], p[1], p[2])));
+  return mesh(new THREE.TubeGeometry(curve, 48, r, 6, false), M(color, { roughness: 0.5 }));
+}
+function wheel(x, z) {
+  const g = new THREE.Group();
+  const tyre = new THREE.Mesh(new THREE.TorusGeometry(26, 7, 16, 40), M(0x1e1f1d, { roughness: 0.9 }));
+  tyre.scale.z = 1.8; // flatten the torus into a wide tyre
+  const hub = new THREE.Mesh(new THREE.CylinderGeometry(21, 21, 22, 32), M(0xf0c419, { roughness: 0.5 }));
+  hub.rotation.x = Math.PI / 2;
+  [tyre, hub].forEach(m => { m.castShadow = true; m.receiveShadow = true; g.add(m); });
+  for (let i = 0; i < 6; i++) { // tread blocks
+    const t = box(6, 4, 26, M(0x2a2b28, { roughness: 0.95 }), 0, 0, 0);
+    const a = (i / 6) * Math.PI * 2;
+    t.position.set(Math.cos(a) * 32, Math.sin(a) * 32, 0);
+    t.rotation.z = a;
+    g.add(t);
+  }
+  g.position.set(x, 32.5, z);
+  return g;
+}
+function ttMotor(xAxle, z, flip) {
+  // body extends 54 mm from the axle toward the rover's centre, 11 mm outward
+  const g = new THREE.Group();
+  const dir = flip ? -1 : 1;
+  const yellow = M(0xf2c230, { roughness: 0.55 });
+  g.add(box(65, 19, 22, yellow, xAxle - dir * 21.5, 32.5, z));
+  g.add(cyl(4, 12, M(0xf7f7f2), "z", xAxle, 32.5, z + Math.sign(z) * 15));            // white shaft
+  g.add(cyl(5, 6, M(0xc9c9c2, { metalness: 0.6 }), "x", xAxle - dir * 57, 32.5, z));  // motor can end
+  g.children.forEach(c => { c.castShadow = true; });
+  return g;
+}
+
+// ---------------------------------------------------------------- materials
+const acrylic = () => M(0xd9ecf5, { transparent: true, opacity: 0.42, roughness: 0.1, metalness: 0, depthWrite: false });
+const pcbGreen = () => M(0x1d7a4b, { roughness: 0.5 });
+const pcbBlue = () => M(0x1f5aa6, { roughness: 0.5 });
+const pcbRed = () => M(0xb83227, { roughness: 0.5 });
+const black = () => M(0x1a1b1a, { roughness: 0.7 });
+const brass = () => M(0xc9a24a, { metalness: 0.7, roughness: 0.35 });
+const silver = () => M(0xbfc4c6, { metalness: 0.8, roughness: 0.3 });
+const ledMat = () => M(0xf3f6ff, { transparent: true, opacity: 0.9, emissive: 0x000000, roughness: 0.2 });
+
+// ---------------------------------------------------------------- builders
+// Each builder returns { group, parts: {id: {group, explode:[x,y,z]}}, cam, sonar, leds }
+function newPart(parts, id, root, explode) {
+  const g = new THREE.Group();
+  g.userData.partId = id;
+  g.userData.base = new THREE.Vector3();
+  g.userData.explode = new THREE.Vector3(...(explode || [0, 0, 0]));
+  parts[id] = g;
+  root.add(g);
+  return g;
+}
+
+// shared 4WD chassis for options A and B
+function chassis4wd(root, parts) {
+  const pb = newPart(parts, "plateBottom", root, [0, 0, 0]);
+  pb.add(box(260, 3, 150, acrylic(), 0, 46.5, 0));
+  const pt = newPart(parts, "plateTop", root, [0, 150, 0]);
+  pt.add(box(260, 3, 150, acrylic(), 0, 84.5, 0));
+  const so = newPart(parts, "standoffs", root, [0, 75, 0]);
+  [[115, 60], [115, -60], [0, 65], [0, -65], [-115, 60], [-115, -60]].forEach(([x, z]) =>
+    so.add(cyl(3, 35, brass(), "y", x, 65.5, z, 6)));
+  const mo = newPart(parts, "motors", root, [0, -10, 0]);
+  [[85, 61, false], [85, -61, false], [-85, 61, true], [-85, -61, true]].forEach(([x, z, f]) => {
+    mo.add(ttMotor(x, z, f));
+    mo.add(box(3, 25, 22, acrylic(), x + (f ? 18 : -18), 34, z)); // bracket
+  });
+  const wh = newPart(parts, "wheels", root, [0, 0, 0]);
+  [[85, 90], [85, -90], [-85, 90], [-85, -90]].forEach(([x, z]) => {
+    const w = wheel(x, z);
+    w.userData.explodeSide = Math.sign(z);
+    wh.add(w);
+  });
+  wh.userData.explodePerChild = 70;
+  const bt = newPart(parts, "battery", root, [0, 40, 0]);
+  bt.add(box(71, 20, 65, black(), -62, 58, 0));
+  for (let i = 0; i < 4; i++) bt.add(cyl(7, 50, M(0xeeeeea), "x", -62, 70, -21 + i * 14, 16));
+  bt.add(box(8, 5, 12, M(0x444444), -95, 70, 22)); // switch
+  const bb = newPart(parts, "breadboard", root, [0, 40, 0]);
+  bb.add(box(46, 9, 35, M(0xf2f1ea, { roughness: 0.8 }), 45, 52.5, 0));
+  return { pb, pt };
+}
+
+function buildA() {
+  const root = new THREE.Group(); const parts = {};
+  chassis4wd(root, parts);
+  const dr = newPart(parts, "driver", root, [0, 70, 0]);
+  dr.add(box(25, 1.6, 20, pcbRed(), 45, 62, 0));
+  dr.add(box(10, 1.2, 10, black(), 45, 63.4, 0));
+  const pi = newPart(parts, "pi", root, [0, 190, 0]);
+  pi.add(box(65, 1.6, 30, pcbGreen(), 15, 92, 0));
+  pi.add(box(51, 8.5, 5, black(), 15, 97, 11));            // GPIO header
+  pi.add(box(12, 1.2, 12, M(0x2b2b2b), 8, 93.4, -4));       // SoC
+  pi.add(box(8, 3, 6, silver(), -8, 94, -13));              // micro-USB
+  const bank = newPart(parts, "bank", root, [0, 170, 0]);
+  bank.add(box(90, 15, 62, M(0x3a3f45, { roughness: 0.4 }), -82, 93.5, 0));
+  bank.add(box(2, 6, 12, silver(), -36.5, 93.5, -14));
+  // camera on a bracket at the front of the top plate, tilted 12° down
+  const camP = newPart(parts, "camera", root, [60, 190, 0]);
+  camP.add(box(3, 30, 34, acrylic(), 121, 101, 0));
+  const camRig = new THREE.Group();
+  camRig.position.set(126, 106, 0);
+  camRig.rotation.z = -12 * Math.PI / 180;
+  camRig.add(box(1.6, 24, 25, pcbGreen(), 0, 0, 0));
+  camRig.add(box(6, 9, 9, black(), 3.5, 0, 0));
+  camRig.add(cyl(3.2, 5, M(0x111111, { metalness: 0.4 }), "x", 8.5, 0, 0));
+  camP.add(camRig);
+  // ultrasonic at the front, between the plates
+  const so = newPart(parts, "sonar", root, [90, 30, 0]);
+  so.add(box(1.6, 20, 45, pcbBlue(), 131, 63, 0));
+  [-13, 13].forEach(z => so.add(cyl(8, 12, silver(), "x", 138, 63, z)));
+  // headlights either side of the camera
+  const le = newPart(parts, "leds", root, [60, 190, 0]);
+  const leds = [];
+  [-34, 34].forEach(z => {
+    const m = ledMat();
+    const body = cyl(2.5, 7, m, "x", 125, 98, z, 16);
+    const dome = mesh(new THREE.SphereGeometry(2.5, 16, 12), m, 128.5, 98, z);
+    le.add(body); le.add(dome); leds.push({ pos: new THREE.Vector3(129, 98, z), mat: m });
+  });
+  // wiring
+  const wi = newPart(parts, "wires", root, [0, 110, 0]);
+  const cols = [0xd23b2f, 0xf0a020, 0x2f9e44, 0x2f6fd0, 0x8b4fc8, 0xe0e0e0, 0x222222];
+  cols.forEach((c, i) => wi.add(wire([[ -6 + i * 6, 101, 11], [-6 + i * 6, 112, 30], [30 + i * 3, 100, 66], [38 + i * 3, 70, 70], [36 + i * 3, 58, 14]], c)));
+  wi.add(wire([[-95, 60, 33], [-60, 64, 50], [10, 60, 30], [30, 58, 10]], 0xd23b2f, 1.3));
+  wi.add(wire([[-95, 60, 30], [-55, 62, 46], [10, 58, 26], [30, 58, 6]], 0x222222, 1.3));
+  [[61, 1], [-61, 1]].forEach(([z]) => {
+    wi.add(wire([[60, 40, z * 0.8], [62, 50, z * 0.5], [55, 58, z * 0.2]], 0xd23b2f, 1));
+    wi.add(wire([[-60, 40, z * 0.8], [-20, 52, z * 0.5], [35, 58, z * 0.2]], 0x222222, 1));
+  });
+  wi.add(wire([[-36, 92, -14], [-26, 98, -24], [-10, 96, -16]], 0x111111, 1.8)); // USB cable
+  const ribbon = mesh(new THREE.BoxGeometry(70, 0.6, 14), M(0xd8c9a0), 85, 89, 0);
+  wi.add(ribbon);
+  return { root, parts, cam: { pos: new THREE.Vector3(135, 104, 0), tilt: 12, hfov: 60 }, sonar: new THREE.Vector3(144, 63, 0), leds };
+}
+
+function buildB() {
+  const root = new THREE.Group(); const parts = {};
+  chassis4wd(root, parts);
+  const dr = newPart(parts, "driver", root, [0, 70, 0]);
+  dr.add(box(25, 1.6, 20, pcbRed(), 45, 62, 0));
+  const bank = newPart(parts, "bank", root, [0, 170, 0]);
+  bank.add(box(90, 15, 62, M(0x3a3f45, { roughness: 0.4 }), -82, 93.5, 0));
+  // ESP32-CAM standing at the front of the top plate, camera facing forward
+  const es = newPart(parts, "esp32", root, [60, 190, 0]);
+  es.add(box(3, 18, 30, acrylic(), 118, 95, 0));                   // bracket
+  es.add(box(1.6, 40, 27, M(0x111111, { roughness: 0.6 }), 122, 106, 0));
+  es.add(box(4, 10, 8, M(0x2a6e3f), 124.5, 116, 0));                // camera module
+  es.add(cyl(3, 5, M(0x0d0d0d, { metalness: 0.4 }), "x", 128.5, 116, 0));
+  es.add(box(3, 8, 22, silver(), 120, 94, 0));                      // shield can
+  const fl = newPart(parts, "flash", root, [60, 190, 0]);
+  const m = ledMat();
+  fl.add(box(2, 4, 4, m, 123.5, 100, 7));
+  const wi = newPart(parts, "wires", root, [0, 110, 0]);
+  [0xd23b2f, 0xf0a020, 0x2f9e44, 0x2f6fd0, 0x222222].forEach((c, i) =>
+    wi.add(wire([[121, 90, -10 + i * 4], [110, 80, 40], [80, 70, 66], [55, 58, 14 + i * 2]], c)));
+  wi.add(wire([[-95, 60, 33], [-60, 64, 50], [10, 60, 30], [30, 58, 10]], 0xd23b2f, 1.3));
+  wi.add(wire([[-95, 60, 30], [-55, 62, 46], [10, 58, 26], [30, 58, 6]], 0x222222, 1.3));
+  wi.add(wire([[-36, 92, -14], [40, 110, -40], [118, 100, -12]], 0x111111, 1.8));
+  return { root, parts, cam: { pos: new THREE.Vector3(131, 116, 0), tilt: 0, hfov: 60 }, sonar: null, leds: [{ pos: new THREE.Vector3(125, 100, 7), mat: m }] };
+}
+
+function buildC() {
+  const root = new THREE.Group(); const parts = {};
+  // geometry (mm): wheel axles at y=32.5
+  const FRONT = 110, MID = -5, REAR = -115;
+  const PIV = [20, 95], BOG = [-60, 65];
+  const body = newPart(parts, "body", root, [0, 120, 0]);
+  body.add(box(200, 60, 120, M(0xe9eef0, { transparent: true, opacity: 0.55, roughness: 0.3, depthWrite: false }), 0, 90, 0));
+  body.add(box(204, 4, 124, M(0x4a8fb8, { roughness: 0.4 }), 0, 122, 0)); // lid
+  const arm = M(0xe8e2d4, { roughness: 0.85 });
+  const ro = newPart(parts, "rockers", root, [0, 0, 0]);
+  const bo = newPart(parts, "bogies", root, [0, 0, 0]);
+  [1, -1].forEach(s => {
+    ro.add(bar(PIV, [FRONT, 40], 5, 20, s * 68, arm));
+    ro.add(bar(PIV, BOG, 5, 20, s * 68, arm));
+    ro.add(cyl(4, 22, silver(), "z", PIV[0], PIV[1], s * 64));     // pivot bolt
+    ro.add(bar([PIV[0], PIV[1]], [PIV[0], 138], 5, 12, s * 68, arm)); // diff post
+    bo.add(bar(BOG, [MID, 40], 5, 18, s * 75, arm));
+    bo.add(bar(BOG, [REAR, 40], 5, 18, s * 75, arm));
+    bo.add(cyl(4, 16, silver(), "z", BOG[0], BOG[1], s * 72));
+  });
+  ro.userData.explodeSideArms = 40; bo.userData.explodeSideArms = 55;
+  const mo = newPart(parts, "motors6", root, [0, 0, 0]);
+  [FRONT, MID, REAR].forEach(x => [86, -86].forEach(z => {
+    const g = new THREE.Group();
+    g.add(box(22, 50, 19, M(0xf2c230), x, 52, z));                   // motor standing upright
+    g.add(cyl(4, 14, M(0xf7f7f2), "z", x, 32.5, z + Math.sign(z) * 16));
+    g.userData.explodeSide = Math.sign(z);
+    mo.add(g);
+  }));
+  mo.userData.explodePerChild = 45;
+  const wh = newPart(parts, "wheels", root, [0, 0, 0]);
+  [FRONT, MID, REAR].forEach(x => [114, -114].forEach(z => {
+    const w = wheel(x, z); w.userData.explodeSide = Math.sign(z); wh.add(w);
+  }));
+  wh.userData.explodePerChild = 90;
+  const df = newPart(parts, "diff", root, [0, 60, 0]);
+  df.add(box(10, 6, 150, M(0x8a5a2b), PIV[0], 130, 0));
+  df.add(cyl(3.5, 10, silver(), "y", PIV[0], 128, 0));
+  [1, -1].forEach(s => df.add(wire([[PIV[0], 130, s * 74], [PIV[0], 135, s * 71], [PIV[0], 136, s * 68]], 0x9aa3a6, 1.2)));
+  const ba = newPart(parts, "battery", root, [0, 160, 0]);
+  ba.add(box(71, 20, 65, black(), -45, 72, 0));
+  for (let i = 0; i < 4; i++) ba.add(cyl(7, 50, M(0xeeeeea), "x", -45, 84, -21 + i * 14, 16));
+  const bk = newPart(parts, "bank", root, [0, 200, 0]);
+  bk.add(box(90, 15, 62, M(0x3a3f45, { roughness: 0.4 }), 40, 70, 0));
+  const bb = newPart(parts, "breadboard", root, [0, 230, 0]);
+  bb.add(box(46, 9, 35, M(0xf2f1ea), -50, 101, -25));
+  bb.add(box(46, 9, 35, M(0xf2f1ea), -50, 101, 25));
+  const dr = newPart(parts, "driver2", root, [0, 250, 0]);
+  dr.add(box(25, 1.6, 20, pcbRed(), -50, 108, -25));
+  dr.add(box(25, 1.6, 20, pcbRed(), -50, 108, 25));
+  const pi = newPart(parts, "pi", root, [0, 160, 0]);
+  pi.add(box(65, 1.6, 30, pcbGreen(), -40, 126, 0));
+  pi.add(box(51, 8.5, 5, black(), -40, 131, 11));
+  const ma = newPart(parts, "mast", root, [0, 120, 0]);
+  ma.add(cyl(5, 160, M(0xb98b55, { roughness: 0.8 }), "y", 85, 204, 0, 16));
+  const camP = newPart(parts, "camera", root, [40, 200, 0]);
+  const camRig = new THREE.Group();
+  camRig.position.set(92, 272, 0);
+  camRig.rotation.z = -18 * Math.PI / 180;
+  camRig.add(box(1.6, 24, 25, pcbGreen(), 0, 0, 0));
+  camRig.add(box(6, 9, 9, black(), 3.5, 0, 0));
+  camRig.add(cyl(3.2, 5, M(0x111111, { metalness: 0.4 }), "x", 8.5, 0, 0));
+  camP.add(camRig);
+  const le = newPart(parts, "leds", root, [40, 200, 0]);
+  const leds = [];
+  [-16, 16].forEach(z => {
+    const m = ledMat();
+    le.add(box(12, 8, 8, black(), 90, 250, z));
+    le.add(cyl(2.5, 7, m, "x", 98, 250, z, 16));
+    le.add(mesh(new THREE.SphereGeometry(2.5, 16, 12), m, 101.5, 250, z));
+    leds.push({ pos: new THREE.Vector3(102, 250, z), mat: m });
+  });
+  const so = newPart(parts, "sonar", root, [80, 0, 0]);
+  so.add(box(1.6, 20, 45, pcbBlue(), 101, 85, 0));
+  [-13, 13].forEach(z => so.add(cyl(8, 12, silver(), "x", 108, 85, z)));
+  const wi = newPart(parts, "wires", root, [0, 160, 0]);
+  [0xd23b2f, 0x2f9e44, 0x2f6fd0, 0xf0a020].forEach((c, i) =>
+    wi.add(wire([[-40 + i * 6, 136, 11], [-30 + i * 6, 140, 40], [-50, 112, 30 + i * 3]], c)));
+  return { root, parts, cam: { pos: new THREE.Vector3(101, 269, 0), tilt: 18, hfov: 60 }, sonar: new THREE.Vector3(114, 85, 0), leds };
+}
+
+// ---------------------------------------------------------------- room props (for the rover's-eye view)
+const props = new THREE.Group();
+scene.add(props);
+(function buildProps() {
+  // red cup 80 cm ahead, slightly left
+  const cup = mesh(new THREE.CylinderGeometry(40, 32, 95, 32, 1, true), M(0xc6262e, { side: THREE.DoubleSide, roughness: 0.4 }), 800, 47.5, -140);
+  props.add(cup);
+  const cupBase = mesh(new THREE.CircleGeometry(32, 32), M(0xc6262e), 800, 0.6, -140);
+  cupBase.rotation.x = -Math.PI / 2;
+  props.add(cupBase);
+  // stack of books 50 cm ahead, right
+  [[0x2d5b8a, 0], [0xd9b44a, 28], [0x3f7d4e, 52]].forEach(([c, y], i) =>
+    props.add(box(220 - i * 15, 26, 150 - i * 8, M(c, { roughness: 0.85 }), 520, 13 + y, 230)));
+  // cardboard "lander" 1.3 m ahead
+  props.add(box(260, 220, 260, M(0xb58a5a, { roughness: 0.95 }), 1350, 110, 60));
+  [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([a, b]) => props.add(cyl(6, 90, M(0x9e9e9e, { metalness: 0.5 }), "y", 1350 + a * 150, 45, 60 + b * 150, 12)));
+  // a chair leg and a cable on the floor
+  props.add(cyl(14, 450, M(0x6b4a2f), "y", 420, 225, -380));
+  props.add(wire([[300, 4, -600], [360, 4, -200], [330, 4, 100], [420, 4, 500]], 0x111111, 4));
+  // back wall
+  const wall = mesh(new THREE.PlaneGeometry(4000, 1200), M(0xe6e1d6, { roughness: 1 }), 2200, 600, 0);
+  wall.rotation.y = -Math.PI / 2;
+  props.add(wall);
+  // drink can for scale, beside the rover
+  const can = new THREE.Group();
+  can.add(cyl(33, 122, M(0xb7bcc0, { metalness: 0.7, roughness: 0.25 }), "y", 0, 61, 0));
+  can.add(cyl(33.2, 70, M(0x2f6fd0, { metalness: 0.3 }), "y", 0, 60, 0));
+  can.position.set(-40, 0, 230);
+  can.userData.isCan = true;
+  props.add(can);
+})();
+
+// ---------------------------------------------------------------- overlays: camera cone, sonar cone, headlights
+const overlay = new THREE.Group();
+scene.add(overlay);
+let current = null, variant = "A";
+const spot = [];
+for (let i = 0; i < 2; i++) {
+  const s = new THREE.SpotLight(0xfff4e0, 0, 2400, 13 * Math.PI / 180, 0.45, 1.2);
+  s.castShadow = false;
+  scene.add(s); scene.add(s.target);
+  spot.push(s);
+}
+const pipCam = new THREE.PerspectiveCamera(46.8, 4 / 3, 6, 8000);
+
+function fovCone(cam, len) {
+  const g = new THREE.Group();
+  const h = (cam.hfov / 2) * Math.PI / 180;
+  const vhalf = Math.atan(Math.tan(h) * 0.75);
+  const corners = [[1, 1], [1, -1], [-1, -1], [-1, 1]].map(([a, b]) =>
+    new THREE.Vector3(len, Math.tan(vhalf) * len * b, Math.tan(h) * len * a));
+  const pos = [];
+  corners.forEach(c => pos.push(0, 0, 0, c.x, c.y, c.z));
+  for (let i = 0; i < 4; i++) { const a = corners[i], b = corners[(i + 1) % 4]; pos.push(a.x, a.y, a.z, b.x, b.y, b.z); }
+  const lg = new THREE.BufferGeometry();
+  lg.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  g.add(new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ color: 0xe8763f })));
+  const tri = [];
+  for (let i = 0; i < 4; i++) { const a = corners[i], b = corners[(i + 1) % 4]; tri.push(0, 0, 0, a.x, a.y, a.z, b.x, b.y, b.z); }
+  const fg = new THREE.BufferGeometry();
+  fg.setAttribute("position", new THREE.Float32BufferAttribute(tri, 3));
+  fg.computeVertexNormals();
+  g.add(new THREE.Mesh(fg, new THREE.MeshBasicMaterial({ color: 0xe8763f, transparent: true, opacity: 0.08, side: THREE.DoubleSide, depthWrite: false })));
+  g.position.copy(cam.pos);
+  g.rotation.z = -cam.tilt * Math.PI / 180;
+  g.userData.kind = "fov";
+  return g;
+}
+function sonarCone(p) {
+  const len = 1000, r = Math.tan(15 * Math.PI / 180) * len;
+  const geo = new THREE.ConeGeometry(r, len, 32, 1, true);
+  geo.translate(0, -len / 2, 0);
+  const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0x5fb3cf, transparent: true, opacity: 0.12, side: THREE.DoubleSide, depthWrite: false }));
+  m.rotation.z = Math.PI / 2;
+  m.position.copy(p);
+  m.userData.kind = "sonar";
+  return m;
+}
+
+// ---------------------------------------------------------------- state + UI
+const ui = id => document.getElementById(id);
+const T = {
+  explode: ui("tExplode"), pip: ui("tPip"), fov: ui("tFov"), sonar: ui("tSonar"),
+  lights: ui("tLights"), dark: ui("tDark"), props: ui("tProps"), spin: ui("tSpin"),
+};
+let explodeT = 0, selected = null;
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function specsFor(v) {
+  const common = { A: [
+      ["Length × width", "26 × 21 cm"], ["Height", "≈ 11.5 cm"], ["Camera height", "≈ 10.5 cm"],
+      ["Ground clearance", "≈ 2.3 cm"], ["Climbs a step of", "≈ 1.5–2 cm"],
+      ["Weight (est.)", "≈ 0.7 kg"], ["Top speed (6 V)", "≈ 60 cm/s"], ["Default drive speed", "≈ 30 cm/s"],
+    ], B: [
+      ["Length × width", "26 × 21 cm"], ["Height", "≈ 13 cm"], ["Camera height", "≈ 11.5 cm"],
+      ["Ground clearance", "≈ 2.3 cm"], ["Climbs a step of", "≈ 1.5–2 cm"],
+      ["Weight (est.)", "≈ 0.6 kg"], ["Distance sensor", "none"], ["Brain runs on", "your laptop"],
+    ], C: [
+      ["Length × width", "30 × 25 cm"], ["Height (to camera)", "≈ 28 cm"], ["Camera height", "≈ 27 cm"],
+      ["Body clearance", "≈ 6 cm"], ["Climbs a step of", "≈ 4–5 cm"],
+      ["Weight (est.)", "≈ 0.9 kg"], ["Wheels", "6, rocker-bogie"], ["Default drive speed", "≈ 25 cm/s"],
+    ] };
+  ui("specs").innerHTML = common[v].map(([k, val]) => `<dt>${k}</dt><dd>${val}</dd>`).join("");
+}
+
+function setVariant(v) {
+  variant = v;
+  document.querySelectorAll(".variants button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === v)));
+  if (current) scene.remove(current.root);
+  overlay.clear();
+  current = v === "A" ? buildA() : v === "B" ? buildB() : buildC();
+  scene.add(current.root);
+  Object.values(current.parts).forEach(p => {
+    p.traverse(o => { if (o.isMesh) o.userData.partId = p.userData.partId; });
+    p.children.forEach(c => { c.userData.base = c.position.clone(); });
+  });
+  overlay.add(fovCone(current.cam, 700));
+  if (current.sonar) overlay.add(sonarCone(current.sonar));
+  T.sonar.disabled = !current.sonar;
+  T.sonar.parentElement.style.opacity = current.sonar ? 1 : 0.45;
+  specsFor(v);
+  const list = ui("partList");
+  list.innerHTML = "";
+  Object.keys(current.parts).forEach(id => {
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = INFO[id].name.replace(/ \(.*\)/, "");
+    b.dataset.id = id; b.setAttribute("aria-pressed", "false");
+    b.addEventListener("click", () => select(id));
+    list.appendChild(b);
+  });
+  select(null);
+  applyExplode(true);
+  applyToggles();
+}
+
+function select(id) {
+  if (selected && current.parts[selected]) setGlow(current.parts[selected], 0x000000);
+  selected = id && current.parts[id] ? id : null;
+  document.querySelectorAll("#partList button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.id === selected)));
+  const box = ui("info");
+  if (!selected) {
+    box.innerHTML = `<h2>Selected part</h2><h3>Click a part</h3><p class="note">Click anything on the rover, or a name below, to see what it does and where to buy it.</p>`;
+    return;
+  }
+  setGlow(current.parts[selected], 0x1f6f8b);
+  const i = INFO[selected];
+  const link = i.link ? `<p><a href="${i.link}" target="_blank" rel="noopener">Buy: ${i.label} ↗</a></p>` : `<p class="note">Made by you: see the Option C build guide.</p>`;
+  box.innerHTML = `<h2>Selected part</h2><h3>${i.name}</h3><p class="size">${i.size}</p><p>${i.role}</p>${link}`;
+}
+function setGlow(group, hex) {
+  group.traverse(o => {
+    if (o.isMesh && o.material && o.material.emissive && !o.userData.isLed) {
+      if (o.material.userData.ledOn) return;
+      o.material.emissive.setHex(hex);
+      o.material.emissiveIntensity = hex ? 0.55 : 1;
+    }
+  });
+}
+
+function applyExplode(instant) {
+  const target = T.explode.checked ? 1 : 0;
+  if (instant || reduceMotion) explodeT = target;
+  if (!current) return;
+  Object.values(current.parts).forEach(p => {
+    p.position.copy(p.userData.explode).multiplyScalar(explodeT);
+    const per = p.userData.explodePerChild || p.userData.explodeSideArms || 0;
+    if (per) p.children.forEach(c => {
+      const side = c.userData.explodeSide || 0;
+      if (side) c.position.set(c.userData.base.x, c.userData.base.y, c.userData.base.z + side * per * explodeT);
+    });
+    if (p.userData.explodeSideArms) p.children.forEach(c => {
+      const s = Math.sign(c.userData.base.z) || 0;
+      c.position.z = c.userData.base.z + s * p.userData.explodeSideArms * explodeT;
+    });
+  });
+}
+
+function cssColor(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "#dfe3dc";
+}
+function applyToggles() {
+  const dark = T.dark.checked;
+  const lightsOn = T.lights.checked;
+  overlay.children.forEach(o => {
+    if (o.userData.kind === "fov") o.visible = T.fov.checked;
+    if (o.userData.kind === "sonar") o.visible = T.sonar.checked && !!current.sonar;
+  });
+  props.visible = T.props.checked;
+  const stage = new THREE.Color(cssColor("--stage"));
+  scene.background = dark ? new THREE.Color(0x07090a) : stage;
+  floorMat.color.setHex(dark ? 0x9aa098 : 0xc3c8bf);
+  hemi.intensity = dark ? 0.12 : 0.75;
+  sun.intensity = dark ? 0.02 : 0.85;
+  grid.visible = !dark;
+  // headlights
+  current.leds.forEach((l, i) => {
+    l.mat.emissive.setHex(lightsOn ? 0xfff6e0 : 0x000000);
+    l.mat.emissiveIntensity = lightsOn ? 1.6 : 1;
+    l.mat.userData.ledOn = lightsOn;
+    const s = spot[i];
+    if (s) {
+      s.intensity = lightsOn ? (dark ? 2.4 : 0.8) : 0;
+      s.position.copy(l.pos);
+      const t = current.cam.tilt + 2;
+      s.target.position.set(l.pos.x + 1000, l.pos.y - Math.tan(t * Math.PI / 180) * 1000, l.pos.z);
+    }
+  });
+  for (let i = current.leds.length; i < spot.length; i++) spot[i].intensity = 0;
+  if (current.leds.length === 1) { spot[0].angle = 30 * Math.PI / 180; } else { spot[0].angle = 13 * Math.PI / 180; }
+  ui("pipLabel").hidden = !T.pip.checked;
+  if (selected) setGlow(current.parts[selected], 0x1f6f8b);
+}
+Object.values(T).forEach(el => el.addEventListener("change", () => { applyExplode(false); applyToggles(); }));
+document.querySelectorAll(".variants button").forEach(b => b.addEventListener("click", () => setVariant(b.dataset.v)));
+new MutationObserver(applyToggles).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", applyToggles);
+
+// ---------------------------------------------------------------- picking
+const ray = new THREE.Raycaster();
+const ndc = new THREE.Vector2();
+let downAt = null;
+canvas.addEventListener("pointerdown", e => { downAt = [e.clientX, e.clientY]; });
+canvas.addEventListener("pointerup", e => {
+  if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 5) return;
+  const r = canvas.getBoundingClientRect();
+  const x = e.clientX - r.left, y = e.clientY - r.top;
+  const p = pipRect();
+  if (T.pip.checked && x > p.x && y > r.height - p.y - p.h && y < r.height - p.y) return;
+  ndc.set((x / r.width) * 2 - 1, -(y / r.height) * 2 + 1);
+  ray.setFromCamera(ndc, camera);
+  const hits = ray.intersectObject(current.root, true).filter(h => h.object.userData.partId);
+  select(hits.length ? hits[0].object.userData.partId : null);
+});
+
+// ---------------------------------------------------------------- render loop
+function pipRect() {
+  const r = canvas.getBoundingClientRect();
+  const w = Math.round(Math.min(Math.max(r.width * 0.32, 150), 300));
+  const h = Math.round(w * 0.75);
+  return { x: r.width - w - 12, y: r.height - h - 12, w, h };
+}
+function resize() {
+  const r = stageEl.getBoundingClientRect();
+  renderer.setSize(r.width, r.height, false);
+  camera.aspect = r.width / r.height;
+  camera.updateProjectionMatrix();
+  const p = pipRect();
+  const lbl = ui("pipLabel");
+  lbl.style.top = "18px";
+  lbl.style.right = "18px";
+}
+new ResizeObserver(resize).observe(stageEl);
+
+function frame() {
+  const target = T.explode.checked ? 1 : 0;
+  if (Math.abs(explodeT - target) > 0.001) {
+    explodeT += (target - explodeT) * 0.12;
+    if (Math.abs(explodeT - target) < 0.002) explodeT = target;
+    applyExplode(false);
+  }
+  if (T.spin.checked && !reduceMotion) {
+    const off = camera.position.clone().sub(controls.target);
+    off.applyAxisAngle(new THREE.Vector3(0, 1, 0), 0.004);
+    camera.position.copy(controls.target).add(off);
+  }
+  controls.update();
+  const r = canvas.getBoundingClientRect();
+  renderer.setScissorTest(false);
+  renderer.setViewport(0, 0, r.width, r.height);
+  renderer.render(scene, camera);
+  if (T.pip.checked && current) {
+    const p = pipRect();
+    const c = current.cam;
+    const t = c.tilt * Math.PI / 180;
+    pipCam.position.copy(c.pos).add(new THREE.Vector3(4, 0, 0));
+    pipCam.up.set(0, 1, 0);
+    pipCam.lookAt(c.pos.x + Math.cos(t) * 100, c.pos.y - Math.sin(t) * 100, c.pos.z);
+    pipCam.fov = 2 * Math.atan(Math.tan(c.hfov / 2 * Math.PI / 180) * 0.75) * 180 / Math.PI;
+    pipCam.updateProjectionMatrix();
+    const ov = overlay.visible; overlay.visible = false;
+    renderer.setScissorTest(true);
+    renderer.setScissor(p.x - 3, p.y - 3, p.w + 6, p.h + 6);
+    renderer.setViewport(p.x - 3, p.y - 3, p.w + 6, p.h + 6);
+    renderer.setClearColor(0xffffff, 1); renderer.clear();
+    renderer.setScissor(p.x, p.y, p.w, p.h);
+    renderer.setViewport(p.x, p.y, p.w, p.h);
+    renderer.render(scene, pipCam);
+    renderer.setScissorTest(false);
+    overlay.visible = ov;
+  }
+  requestAnimationFrame(frame);
+}
+
+setVariant("A");
+resize();
+requestAnimationFrame(frame);
+})();
+</script>
+
+</body>
+</html>

@@ -35,7 +35,9 @@ Option C looks and drives like a real planetary rover. It has **six wheels on a 
 
 ## The chassis: two routes
 
-### Route 1 (easier): buy a kit
+### Route 1 (easier, if you can find one): buy a kit
+
+> 🔎 When I searched (November 2026), I found **no cheap rocker-bogie kit with TT motors**. The real ones (e.g. ServoCity's Bogie Runt Rover) cost much more and use different motors, and cheap "6WD" kits use springs, not a rocker-bogie. Route 2 is the realistic choice, but look again: new kits appear all the time.
 
 Search for `rocker bogie 6WD robot chassis`. **Check before buying:**
 - ✅ Motors are **3–6 V "TT" or "N20" gear motors**. ❌ **Avoid 12 V motors** (often labelled "25GA" or "37GA" with "12V"). They need a bigger battery and driver, which breaks the budget.

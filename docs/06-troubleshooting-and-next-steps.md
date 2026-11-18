@@ -113,6 +113,7 @@ Once your rover drives itself, here are ideas, from easy to hard:
 
 ### Medium
 - **Pan camera.** Mount the camera on an **SG90 micro servo** ($3) so the rover can "look left/right" without turning its whole body, like a real rover's mast. Add `look_left` and `look_right` actions.
+- **Cliff sensor.** A downward-facing infrared sensor (search `TCRT5000 module`, about $1) at the front edge. If the floor suddenly "disappears", stop, before the rover drives off a step. This is the biggest safety upgrade; see [guide 7](07-what-it-can-really-do.md#3-what-can-stop-it-terrain-and-obstacles).
 - **Bumper switches.** Two micro-switches at the front corners give a reflex for things the ultrasonic sensor misses.
 - **Distance sensor for Option B.** Swap the ESP32-CAM for an **ESP32-S3** camera board (e.g. "XIAO ESP32S3 Sense"), which has more free pins.
 - **Dimmable headlights.** Use PWM (`gpiozero.PWMLED`) so Claude can choose a brightness, not just on/off. Less glare, more battery.
