@@ -4,7 +4,7 @@ Two ways to look at the rover before you build it:
 
 | File | What it is | How to open it |
 |---|---|---|
-| **Online viewer** | Interactive 3D model of options A, B and C. Spin it, explode it, click parts for buy links, and see a live "what Claude sees" camera view. | https://claude.ai/artifact/VqTWkRmQ2hFEWxdDdbjGNp |
+| **Online viewer** | Interactive 3D model. Opens on **"Your build"**: the exact parts ordered (Pi 3 B+, single-deck chassis, Arducam case, Miady bank...) with a weight check and centre of mass. Also has options A, B and C. Spin it, explode it, click parts for buy links, and see a live "what Claude sees" camera view. | https://claude.ai/artifact/VqTWkRmQ2hFEWxdDdbjGNp |
 | `rover-3d.html` | The same viewer, as a file in this repo | Double-click it to open in your web browser (needs internet to load the 3D library) |
 | `rover.scad` | A real, parametric CAD model | Install **OpenSCAD** (free, https://openscad.org), open the file, press **F5** |
 

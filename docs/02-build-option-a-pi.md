@@ -135,7 +135,32 @@ Every chassis kit is slightly different, so follow its leaflet if it has one. Th
 6. Put the **4×AA battery holder** on the bottom plate, between the motors, with double-sided tape or the kit's screws. **Leave the batteries out for now.**
 7. Don't attach the top plate yet. You'll want access to the wiring.
 
-**Planned layout:**
+### If your chassis has only ONE plate (single-deck)
+
+Some kits, like the black PCB "Robot Chassis 4WD" kit, have **one 256 × 150 mm plate** with notches for the wheels, rated for a **500 g** maximum load. Everything still fits; see **"Your build"** in the [3D model](https://claude.ai/artifact/VqTWkRmQ2hFEWxdDdbjGNp):
+
+```
+                    FRONT
+   ┌──┐┌──────────────────────────────┐┌──┐
+   │◯ ││ [sensor]  [camera] [LEDs]    ││ ◯│   ← wheels sit in the notches
+   └──┘│                              │└──┘
+       │ [power bank]   [Pi 3 B+]     │      ← middle: full width
+   ┌──┐│                              │┌──┐
+   │◯ ││        [breadboard]          ││ ◯│
+   └──┘└──────────────────────────────┘└──┘
+                    BACK
+      (4×AA holder: UNDER the plate, between the motors)
+```
+
+- **Nothing above the wheel notches**: the wheels stick up about 2 cm above the plate there.
+- **AA battery holder underneath**, centred between the four motors, held by foam tape or a zip tie through the plate's holes. It keeps the heavy batteries low and frees the top. Flip the rover over to change batteries.
+- **Pi and power bank side by side** in the middle. The bank's USB port faces the Pi's power port, so the 1 ft cable is plenty.
+- **Breadboard across the back.** If the motor wires don't reach it, extend them with M-F jumper wires.
+- **Camera case at the front**, a little right of centre. Stand the **distance sensor** at the front-left with foam tape against a small block (an eraser works). Put the **headlights** front-right.
+- With these parts, the payload is about **420 g**, under the kit's 500 g limit. Don't add much more weight, for example a bigger power bank.
+- In `rover/config.py`, set `CAMERA_HEIGHT_CM = 7` and `CAMERA_FOV_DEGREES = 54` (for the OV5647 camera).
+
+**Planned layout (two-plate kits):**
 
 ```
                 FRONT

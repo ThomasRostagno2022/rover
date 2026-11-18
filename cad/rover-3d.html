@@ -71,6 +71,7 @@ h1 {
   max-width: 1280px; margin: 0 auto;
 }
 @media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 520px) { .variants button { padding: 7px 9px; font-size: 12px; white-space: nowrap; } }
 .stage {
   position: relative; background: var(--stage); border: 1px solid var(--line);
   border-radius: 10px; overflow: hidden; height: min(72vh, 640px); min-height: 380px;
@@ -112,6 +113,14 @@ aside { display: grid; gap: 12px; align-content: start; min-width: 0; }
 #info .size { font: 12px var(--font-mono); color: var(--muted); }
 #info a { color: var(--sel); }
 .note { color: var(--muted); font-size: 12px; margin: 0; }
+.wt { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.wt td { padding: 2px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+.wt td.g { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; padding-left: 8px; }
+.wt td.src { color: var(--muted); font-size: 11px; padding-left: 8px; white-space: nowrap; }
+.wt tr.total td { font-weight: 600; border-bottom: 0; padding-top: 6px; }
+.meter { position: relative; height: 10px; border-radius: 5px; background: var(--line); margin: 8px 0 4px; overflow: hidden; }
+.meter span { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 5px; }
+.meter-label { display: flex; justify-content: space-between; font: 12px var(--font-mono); color: var(--muted); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 
@@ -121,7 +130,8 @@ aside { display: grid; gap: 12px; align-content: start; min-width: 0; }
     <p class="sub">Your Claude-driven rover at real size, in millimetres. Spin it, pull it apart, click any part, and see what its camera sees.</p>
   </div>
   <div class="variants" role="group" aria-label="Build option">
-    <button type="button" data-v="A" aria-pressed="true">A · Pi Rover</button>
+    <button type="button" data-v="Y" aria-pressed="true">Your build</button>
+    <button type="button" data-v="A" aria-pressed="false">A · Pi Rover</button>
     <button type="button" data-v="B" aria-pressed="false">B · ESP32-CAM</button>
     <button type="button" data-v="C" aria-pressed="false">C · 6-wheel</button>
   </div>
@@ -147,12 +157,18 @@ aside { display: grid; gap: 12px; align-content: start; min-width: 0; }
         <label><input type="checkbox" id="tDark"> Dark room</label>
         <label><input type="checkbox" id="tProps" checked> Room objects</label>
         <label><input type="checkbox" id="tSpin"> Turntable</label>
+        <label><input type="checkbox" id="tCom" checked> Centre of mass</label>
       </div>
     </div>
 
     <div class="panel">
       <h2>Size &amp; numbers</h2>
       <dl class="specs" id="specs"></dl>
+    </div>
+
+    <div class="panel" id="weightsPanel">
+      <h2>Weight check</h2>
+      <div id="weights"></div>
     </div>
 
     <div class="panel" id="info" aria-live="polite">
@@ -198,6 +214,19 @@ const INFO = {
   rockers: { name: "Rockers", role: "Main suspension arms. Each swings on a bolt in the body wall and carries the front wheel plus the bogie.", size: "foam board / plywood, V-shaped", link: "", label: "" },
   bogies: { name: "Bogies", role: "Smaller arms carrying the middle and rear wheels. They tilt independently so all six wheels stay on the ground.", size: "foam board / plywood", link: "", label: "" },
   diff: { name: "Differential bar", role: "See-saw across the top. When one rocker tilts up, the other tilts down, so the body stays at the average angle.", size: "150 mm bar + 2 wire links", link: "", label: "" },
+  yPlate: { name: "Chassis plate (PCB)", role: "One-deck chassis: a 2 mm circuit-board plate with corner notches for the wheels. Everything mounts on top; motors and the AA pack hang underneath.", size: "256 × 150 × 2 mm", w: "part of kit: 300 g with motors + wheels (listing)", link: "https://www.amazon.com/Robot-Chassis-Motor-Arduino-Raspberry/dp/B07F759T89", label: "Robot Chassis 4WD kit (in your cart)" },
+  yMotors: { name: "TT gear motors ×4", role: "Come with the chassis kit. Mounted under the plate at each corner; left pair and right pair are wired together.", size: "≈65 × 22 × 19 mm each", w: "included in the 300 g kit weight", link: "https://www.amazon.com/Robot-Chassis-Motor-Arduino-Raspberry/dp/B07F759T89", label: "chassis kit" },
+  yWheels: { name: "Wheels ×4", role: "Rubber tyres with sponge inserts, sitting in the plate's corner notches.", size: "≈ Ø65 × 26 mm", w: "included in the 300 g kit weight", link: "https://www.amazon.com/Robot-Chassis-Motor-Arduino-Raspberry/dp/B07F759T89", label: "chassis kit" },
+  yPi: { name: "Raspberry Pi 3 Model B+", role: "The rover's computer. USB and network ports face the back; the 40 GPIO pins run along the right-hand edge; the camera ribbon plugs into the slot between HDMI and audio.", size: "85 × 56 × 17 mm (87 × 58.5 incl. connectors)", w: "≈ 50 g (listings: 49 g)", link: "https://www.amazon.com/s?k=raspberry+pi+3+model+b%2B", label: "in your cart" },
+  ySd: { name: "SanDisk 32 GB microSD", role: "The Pi's 'hard drive', in the slot under the board's front edge.", size: "15 × 11 × 1 mm", w: "≈ 0.5 g", link: "https://www.amazon.com/s?k=sandisk+ultra+32gb+microsd+a1", label: "in your cart" },
+  yCam: { name: "Arducam OV5647 camera in acrylic case", role: "Claude's eye, at the front, tilted ~10° down. About 54° wide. The case's stand screws or tapes to the plate.", size: "≈ 30 × 36 × 40 mm with case (estimate)", w: "≈ 30 g with case + cable (estimate)", link: "https://www.amazon.com/Arducam-Raspberry-Camera-Module-1080P/dp/B07RWCGX5K", label: "in your cart" },
+  yBank: { name: "Miady 5000 mAh power bank", role: "Powers the Pi for ~4–5 h. Sits beside the Pi on Velcro so you can take it off to charge (or charge it in place).", size: "≈ 91 × 64 × 10 mm (listing: 3.6 × 2.5 × 0.4 in)", w: "≈ 120 g (listings: 120–140 g)", link: "https://www.amazon.com/Miady-5000mAh-Portable-Charging-Compatible/dp/B0FT7S5W1L", label: "in your cart" },
+  yHolder: { name: "Ogrmar 4×AA holder + 4 AA cells", role: "Motor power. Mounted UNDER the plate between the motors to keep weight low and free the top deck. Flip the rover to change batteries.", size: "≈ 70 × 64 × 20 mm (listing)", w: "≈ 35 g holder + 92 g alkaline AAs (4 × 23 g)", link: "https://www.amazon.com/Ogrmar-Switch-Battery-Holder-Leads/dp/B075G8XZLM", label: "in your cart (AA batteries not yet!)" },
+  yBoard: { name: "ELEGOO 400-hole breadboard", role: "Wiring hub at the back. Holds the motor driver, the headlight transistor and resistors.", size: "≈ 82.6 × 55 × 8.5 mm", w: "≈ 38 g (same as Adafruit's half-size board)", link: "https://www.amazon.com/EL-CK-002-Electronic-Breadboard-Capacitor-Potentiometer/dp/B01ERP6WL4", label: "ELEGOO Fun Kit (in your cart)" },
+  yDriver: { name: "SparkFun TB6612FNG motor driver", role: "Plugs into the breadboard. Turns the Pi's signals into motor power.", size: "≈ 20 × 20 mm board + pins", w: "≈ 3 g (estimate)", link: "https://www.sparkfun.com/sparkfun-motor-driver-dual-tb6612fng-with-headers.html", label: "in your cart" },
+  ySonar: { name: "RCWL-1601 distance sensor", role: "The reflex, front-left, facing straight ahead. Stand it up with foam tape against a small block (an eraser or a piece of the packaging works).", size: "≈ 45 × 20 mm board, Ø16 mm transducers", w: "≈ 6 g (Adafruit listing)", link: "https://www.amazon.com/JESSINIE-RCWL-1601-Ultrasonic-Ranging-Compatible/dp/B0CB3YCFYY", label: "in your cart" },
+  yLeds: { name: "Headlights (2 white LEDs)", role: "Front-right, beside the camera. Wired back to the transistor on the breadboard with F-M jumpers.", size: "5 mm LEDs", w: "≈ 1 g", link: "https://www.amazon.com/Transparent-Intensity-Lighting-Electronics-Components/dp/B01AUI4VQU", label: "CHANZON LEDs (in your cart)" },
+  yWires: { name: "Wiring: jumpers, motor leads, USB and ribbon cables", role: "About 20 jumper wires (ELEGOO 20 cm), the 1 ft USB cable from bank to Pi, and the camera's 15 cm ribbon.", size: "—", w: "≈ 25 g jumpers + 15 g USB cable (estimate)", link: "https://www.amazon.com/Elegoo-EL-CP-004-Multicolored-Breadboard-arduino/dp/B01EV70C78", label: "ELEGOO wires (in your cart)" },
   mast: { name: "Camera mast", role: "Lifts the camera to ≈27 cm so Claude can see over obstacles, like a real rover's mast camera.", size: "dowel or pencil, 15–20 cm", link: "", label: "" },
 };
 
@@ -210,9 +239,9 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(35, 1, 5, 20000);
-camera.position.set(430, 290, 520);
+camera.position.set(330, 230, 400);
 const controls = new THREE.OrbitControls(camera, canvas);
-controls.target.set(20, 70, 0);
+controls.target.set(15, 55, 0);
 controls.enableDamping = true;
 controls.minDistance = 180;
 controls.maxDistance = 3000;
@@ -506,6 +535,145 @@ function buildC() {
   return { root, parts, cam: { pos: new THREE.Vector3(101, 269, 0), tilt: 18, hfov: 60 }, sonar: new THREE.Vector3(114, 85, 0), leds };
 }
 
+// ---------------------------------------------------------------- YOUR BUILD (exactly the parts in the cart)
+// Single-deck PCB chassis 256 × 150 × 2 mm (listing), wheels in corner notches,
+// Pi 3 B+ and power bank side by side in the middle, breadboard at the back,
+// camera + sensor + headlights at the front, AA pack underneath.
+const PLATE_TOP = 44.5;
+const MASSES = [
+  // [label, grams, x, y, z, source]
+  ["Chassis kit: plate, 4 motors, 4 wheels", 300, 0, 35, 0, "listing"],
+  ["4 × AA alkaline batteries", 92, 0, 32.5, 0, "standard"],
+  ["Miady 5000 mAh power bank", 120, 0, 51, -40, "listing"],
+  ["Raspberry Pi 3 B+ (+ SD card)", 50, 0, 56, 40, "listing"],
+  ["ELEGOO 400 breadboard", 38, -82, 49, 0, "similar part"],
+  ["Ogrmar AA holder (empty)", 35, 0, 32.5, 0, "listing"],
+  ["Camera + acrylic case + ribbon", 30, 112, 62, 12, "estimate"],
+  ["Jumper wires (~20)", 25, -30, 56, 25, "estimate"],
+  ["USB cable, 1 ft", 15, 40, 52, -5, "estimate"],
+  ["Foam tape / Velcro", 5, 0, 45, 0, "estimate"],
+  ["Distance sensor + foam block", 8, 126, 56, -25, "listing"],
+  ["Motor driver", 3, -82, 60, -15, "estimate"],
+  ["LEDs, transistor, resistors", 3, 100, 52, 30, "estimate"],
+];
+const LOAD_LIMIT = 500; // g, chassis listing: "Maximum Load 500g"
+
+function buildY() {
+  const root = new THREE.Group(); const parts = {};
+  // plate: central strip + full-width middle = the notched outline
+  const pcb = () => M(0x1c2733, { roughness: 0.45, metalness: 0.15 });
+  const pl = newPart(parts, "yPlate", root, [0, 0, 0]);
+  pl.add(box(256, 2, 94, pcb(), 0, PLATE_TOP - 1, 0));
+  pl.add(box(104, 2, 150, pcb(), 0, PLATE_TOP - 1, 0));
+  for (let i = 0; i < 14; i++) pl.add(cyl(2, 2.2, M(0xc9a24a, { metalness: 0.7, roughness: 0.3 }), "y", -110 + i * 17, PLATE_TOP - 1, (i % 2 ? 38 : -38), 10));
+  // motors under the plate, wheels in the notches
+  const mo = newPart(parts, "yMotors", root, [0, -12, 0]);
+  [[88, 1], [88, -1], [-88, 1], [-88, -1]].forEach(([x, s]) => {
+    const inward = -Math.sign(x);
+    mo.add(box(65, 19, 22, M(0xf2c230), x + inward * 21.5, 32.5, s * 41));
+    mo.add(cyl(3, 4, M(0xf7f7f2), "z", x, 32.5, s * 53));
+    mo.add(box(3, 12, 22, M(0x1c2733), x + inward * 40, 38, s * 41));   // bracket
+  });
+  const wh = newPart(parts, "yWheels", root, [0, 0, 0]);
+  [[88, 67], [88, -67], [-88, 67], [-88, -67]].forEach(([x, z]) => { const w = wheel(x, z); w.userData.explodeSide = Math.sign(z); wh.add(w); });
+  wh.userData.explodePerChild = 60;
+  // AA holder underneath, between the motors
+  const ho = newPart(parts, "yHolder", root, [0, -8, 175]);
+  ho.add(box(64, 20, 70, black(), 0, 32.5, 0));
+  for (let i = 0; i < 4; i++) ho.add(cyl(7, 50, M(0x2f6fd0, { roughness: 0.4 }), "z", -21 + i * 14, 28, 0, 16));
+  ho.add(box(10, 4, 6, M(0x555555), -26, 22, 30));                       // switch
+  // Raspberry Pi 3 B+ on 5 mm standoffs, right side of the middle section
+  const pi = newPart(parts, "yPi", root, [0, 120, 0]);
+  const PIY = PLATE_TOP + 5;
+  [[-39, 15.5], [19, 15.5], [-39, 64.5], [19, 64.5]].forEach(([x, z]) => pi.add(cyl(2.5, 5, brass(), "y", x, PLATE_TOP + 2.5, z, 6)));
+  pi.add(box(85, 1.4, 56, pcbGreen(), 0, PIY + 0.7, 40));
+  pi.add(box(51, 8.5, 5, black(), 10, PIY + 5.6, 64.5));                // GPIO header
+  pi.add(box(14, 1.6, 14, silver(), 5, PIY + 2.2, 36));                  // SoC
+  pi.add(box(17, 16, 13, silver(), -36, PIY + 9.4, 22));                 // USB
+  pi.add(box(17, 16, 13, silver(), -36, PIY + 9.4, 40));                 // USB
+  pi.add(box(21, 13.5, 16, silver(), -34, PIY + 8.2, 58));               // Ethernet
+  pi.add(box(15, 6, 11, silver(), 10.5, PIY + 4.4, 15.5));               // HDMI
+  pi.add(box(8, 3, 6, silver(), 32, PIY + 2.9, 14));                     // micro-USB power
+  pi.add(box(2.5, 5.5, 22, M(0xeeeeee), -2, PIY + 4.1, 22));             // CSI camera connector
+  const sd = newPart(parts, "ySd", root, [30, 110, 0]);
+  sd.add(box(11, 1, 15, M(0xb8262e), 46, PIY - 1.5, 40));
+  // power bank, left side of the middle section
+  const bk = newPart(parts, "yBank", root, [0, 90, 0]);
+  bk.add(box(91, 10, 64, M(0x26292d, { roughness: 0.55 }), 0, PLATE_TOP + 1.5 + 5, -40));
+  bk.add(box(1.5, 4, 9, silver(), 45.8, PLATE_TOP + 6.5, -22));
+  bk.add(box(91, 1.5, 30, M(0x6b6f74, { roughness: 1 }), 0, PLATE_TOP + 0.75, -40));  // Velcro strip
+  // breadboard at the back, long side across the rover
+  const bb = newPart(parts, "yBoard", root, [0, 100, 0]);
+  bb.add(box(55, 8.5, 82.6, M(0xf2f1ea, { roughness: 0.8 }), -82, PLATE_TOP + 4.25, 0));
+  bb.add(box(2, 0.6, 76, M(0xd23b2f), -105, PLATE_TOP + 8.6, 0));
+  bb.add(box(2, 0.6, 76, M(0x2f6fd0), -101, PLATE_TOP + 8.6, 0));
+  bb.add(box(3, 5, 1.5, M(0x111111), -70, PLATE_TOP + 11, 20));          // transistor
+  bb.add(box(2, 2, 8, M(0xc8a27a), -64, PLATE_TOP + 9.5, 26));           // resistor
+  const dr = newPart(parts, "yDriver", root, [0, 150, 0]);
+  dr.add(box(20, 1.6, 20, pcbRed(), -82, PLATE_TOP + 16, -18));
+  dr.add(box(9, 1.2, 9, black(), -82, PLATE_TOP + 17.4, -18));
+  // camera in its acrylic case, front, slightly right of centre
+  const cam = newPart(parts, "yCam", root, [60, 120, 0]);
+  const acr = () => M(0xd9ecf5, { transparent: true, opacity: 0.5, roughness: 0.1, depthWrite: false });
+  cam.add(box(30, 3, 36, acr(), 112, PLATE_TOP + 1.5, 12));
+  [-16, 16].forEach(dz => cam.add(box(6, 34, 3, acr(), 112, PLATE_TOP + 20, 12 + dz)));
+  const rig = new THREE.Group();
+  rig.position.set(114, 70, 12);
+  rig.rotation.z = -10 * Math.PI / 180;
+  rig.add(box(1.6, 24, 25, pcbGreen(), 0, 0, 0));
+  rig.add(box(6, 9, 9, black(), 3.5, 0, 0));
+  rig.add(cyl(3.2, 5, M(0x111111, { metalness: 0.4 }), "x", 8.5, 0, 0));
+  cam.add(rig);
+  // distance sensor standing at the front-left, held by a foam block
+  const so = newPart(parts, "ySonar", root, [70, 40, 0]);
+  so.add(box(10, 20, 30, M(0x8e9aa3, { roughness: 1 }), 117, PLATE_TOP + 10, -25));   // foam block
+  so.add(box(1.6, 20, 45, pcbBlue(), 123, PLATE_TOP + 10, -25));
+  [-38, -12].forEach(z => so.add(cyl(8, 12, silver(), "x", 130, PLATE_TOP + 10, z)));
+  // headlights, front-right
+  const le = newPart(parts, "yLeds", root, [60, 100, 0]);
+  const leds = [];
+  [32, 42].forEach(z => {
+    const m = ledMat();
+    le.add(box(6, 8, 6, M(0x222222), 123, PLATE_TOP + 6, z));
+    le.add(cyl(2.5, 7, m, "x", 128, PLATE_TOP + 10, z, 16));
+    le.add(mesh(new THREE.SphereGeometry(2.5, 16, 12), m, 131.5, PLATE_TOP + 10, z));
+    leds.push({ pos: new THREE.Vector3(132, PLATE_TOP + 10, z), mat: m });
+  });
+  // wiring
+  const wi = newPart(parts, "yWires", root, [0, 190, 0]);
+  const cols = [0xd23b2f, 0xf0a020, 0x2f9e44, 0x2f6fd0, 0x8b4fc8, 0xe0e0e0, 0x222222];
+  cols.forEach((c, i) => wi.add(wire([[-12 + i * 6, PIY + 10, 64.5], [-14 + i * 5, PIY + 22, 58], [-50, PLATE_TOP + 22, 30 - i * 4], [-74 + i * 2, PLATE_TOP + 10, 10 - i * 5]], c)));
+  [[88, 41], [88, -41], [-88, 41], [-88, -41]].forEach(([x, z], i) => {
+    wi.add(wire([[x - Math.sign(x) * 50, 30, z], [x - Math.sign(x) * 52, PLATE_TOP + 6, z * 0.95], [-70, PLATE_TOP + 14, z * 0.5], [-86, PLATE_TOP + 9, z * 0.3]], i % 2 ? 0x222222 : 0xd23b2f, 0.9));
+  });
+  wi.add(wire([[-30, 32, 34], [-50, PLATE_TOP - 4, 20], [-58, PLATE_TOP + 10, 12], [-100, PLATE_TOP + 9, 30]], 0xd23b2f, 1.2));
+  wi.add(wire([[-30, 32, 30], [-48, PLATE_TOP - 4, 16], [-56, PLATE_TOP + 10, 8], [-104, PLATE_TOP + 9, 28]], 0x111111, 1.2));
+  wi.add(wire([[46.5, PLATE_TOP + 6.5, -22], [60, PLATE_TOP + 9, -10], [52, PLATE_TOP + 9, 6], [34, PIY + 3, 12]], 0x111111, 1.8));   // USB bank → Pi
+  wi.add(wire([[109, 64, 12], [80, 62, 14], [30, PIY + 12, 18], [-2, PIY + 7, 22]], 0xe8dcc0, 1.4));                                // camera ribbon
+  [32, 42].forEach((z, i) => wi.add(wire([[123, PLATE_TOP + 4, z], [70, PLATE_TOP + 14, 74 - i * 3], [-20, PLATE_TOP + 22, 72], [-68, PLATE_TOP + 10, 26 + i * 3]], i ? 0x222222 : 0xf0a020, 0.9)));
+  return { root, parts, cam: { pos: new THREE.Vector3(123, 68.5, 12), tilt: 10, hfov: 54 }, sonar: new THREE.Vector3(137, PLATE_TOP + 10, -25), leds };
+}
+
+function centreOfMass() {
+  let m = 0, x = 0, y = 0, z = 0;
+  MASSES.forEach(([, g, px, py, pz]) => { m += g; x += g * px; y += g * py; z += g * pz; });
+  return { m, pos: new THREE.Vector3(x / m, y / m, z / m) };
+}
+function weightsPanel() {
+  const total = MASSES.reduce((a, r) => a + r[1], 0);
+  const payload = total - MASSES[0][1];
+  const pct = Math.round(payload / LOAD_LIMIT * 100);
+  const rows = MASSES.map(([label, g, , , , src]) => `<tr><td>${label}</td><td class="g">${g} g</td><td class="src">${src}</td></tr>`).join("");
+  const com = centreOfMass().pos;
+  ui("weights").innerHTML = `
+    <table class="wt"><tbody>${rows}
+      <tr class="total"><td>Total rover</td><td class="g">≈ ${total} g</td><td></td></tr>
+    </tbody></table>
+    <div class="meter" role="img" aria-label="Payload ${payload} g of ${LOAD_LIMIT} g limit"><span style="width:${Math.min(pct, 100)}%"></span></div>
+    <div class="meter-label"><span>Payload ${payload} g</span><span>${pct}% of 500 g limit</span></div>
+    <p class="note" style="margin-top:6px">Centre of mass: ${Math.abs(com.x / 10).toFixed(1)} cm ${com.x >= 0 ? "ahead of" : "behind"} centre, ${Math.abs(com.z / 10).toFixed(1)} cm to the ${com.z >= 0 ? "right" : "left"}, ${(com.y / 10).toFixed(1)} cm off the floor. "Listing" = seller or datasheet figure; "estimate" = typical for that kind of part.</p>`;
+}
+
 // ---------------------------------------------------------------- room props (for the rover's-eye view)
 const props = new THREE.Group();
 scene.add(props);
@@ -589,13 +757,29 @@ function sonarCone(p) {
 const ui = id => document.getElementById(id);
 const T = {
   explode: ui("tExplode"), pip: ui("tPip"), fov: ui("tFov"), sonar: ui("tSonar"),
-  lights: ui("tLights"), dark: ui("tDark"), props: ui("tProps"), spin: ui("tSpin"),
+  lights: ui("tLights"), dark: ui("tDark"), props: ui("tProps"), spin: ui("tSpin"), com: ui("tCom"),
 };
 let explodeT = 0, selected = null;
+// centre-of-mass marker: a small sphere with a vertical line to the floor
+const comMarker = new THREE.Group();
+(function () {
+  const c = centreOfMass().pos;
+  const ball = new THREE.Mesh(new THREE.SphereGeometry(5, 20, 14), new THREE.MeshBasicMaterial({ color: 0xe8763f, depthTest: false }));
+  ball.position.copy(c); ball.renderOrder = 10;
+  const lg = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(c.x, 0, c.z), new THREE.Vector3(c.x, c.y, c.z)]);
+  const line = new THREE.Line(lg, new THREE.LineBasicMaterial({ color: 0xe8763f, depthTest: false }));
+  line.renderOrder = 10;
+  comMarker.add(ball, line);
+})();
+scene.add(comMarker);
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 function specsFor(v) {
-  const common = { A: [
+  const common = { Y: [
+      ["Length × width", "≈ 27 × 16 cm"], ["Height (camera case)", "≈ 8.5 cm"], ["Camera height", "≈ 7 cm"],
+      ["Ground clearance", "≈ 2.2 cm"], ["Climbs a step of", "≈ 1.5 cm"],
+      ["Total weight", "≈ 0.72 kg"], ["Pi runtime (5000 mAh)", "≈ 4–5 h"], ["Default drive speed", "≈ 30 cm/s"],
+    ], A: [
       ["Length × width", "26 × 21 cm"], ["Height", "≈ 11.5 cm"], ["Camera height", "≈ 10.5 cm"],
       ["Ground clearance", "≈ 2.3 cm"], ["Climbs a step of", "≈ 1.5–2 cm"],
       ["Weight (est.)", "≈ 0.7 kg"], ["Top speed (6 V)", "≈ 60 cm/s"], ["Default drive speed", "≈ 30 cm/s"],
@@ -616,7 +800,10 @@ function setVariant(v) {
   document.querySelectorAll(".variants button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === v)));
   if (current) scene.remove(current.root);
   overlay.clear();
-  current = v === "A" ? buildA() : v === "B" ? buildB() : buildC();
+  current = v === "Y" ? buildY() : v === "A" ? buildA() : v === "B" ? buildB() : buildC();
+  ui("weightsPanel").hidden = v !== "Y";
+  if (v === "Y") weightsPanel();
+  comMarker.visible = v === "Y" && T.com.checked;
   scene.add(current.root);
   Object.values(current.parts).forEach(p => {
     p.traverse(o => { if (o.isMesh) o.userData.partId = p.userData.partId; });
@@ -652,8 +839,9 @@ function select(id) {
   }
   setGlow(current.parts[selected], 0x1f6f8b);
   const i = INFO[selected];
-  const link = i.link ? `<p><a href="${i.link}" target="_blank" rel="noopener">Buy: ${i.label} ↗</a></p>` : `<p class="note">Made by you: see the Option C build guide.</p>`;
-  box.innerHTML = `<h2>Selected part</h2><h3>${i.name}</h3><p class="size">${i.size}</p><p>${i.role}</p>${link}`;
+  const link = i.link ? `<p><a href="${i.link}" target="_blank" rel="noopener">${variant === "Y" ? "Product" : "Buy"}: ${i.label} ↗</a></p>` : `<p class="note">Made by you: see the Option C build guide.</p>`;
+  const wline = i.w ? `<p class="size">Weight: ${i.w}</p>` : "";
+  box.innerHTML = `<h2>Selected part</h2><h3>${i.name}</h3><p class="size">${i.size}</p>${wline}<p>${i.role}</p>${link}`;
 }
 function setGlow(group, hex) {
   group.traverse(o => {
@@ -716,6 +904,7 @@ function applyToggles() {
   for (let i = current.leds.length; i < spot.length; i++) spot[i].intensity = 0;
   if (current.leds.length === 1) { spot[0].angle = 30 * Math.PI / 180; } else { spot[0].angle = 13 * Math.PI / 180; }
   ui("pipLabel").hidden = !T.pip.checked;
+  comMarker.visible = variant === "Y" && T.com.checked && !T.explode.checked;
   if (selected) setGlow(current.parts[selected], 0x1f6f8b);
 }
 Object.values(T).forEach(el => el.addEventListener("change", () => { applyExplode(false); applyToggles(); }));
@@ -799,7 +988,7 @@ function frame() {
   requestAnimationFrame(frame);
 }
 
-setVariant("A");
+setVariant("Y");
 resize();
 requestAnimationFrame(frame);
 })();
