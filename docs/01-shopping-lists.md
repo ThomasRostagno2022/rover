@@ -157,6 +157,13 @@ In 2026 the Pi Zero 2 W is often out of stock everywhere. Raspberry Pi has said 
 
 **Hammer-in header (choice 2):** [Pimoroni GPIO Hammer Header kit](https://shop.pimoroni.com/collections/raspberry-pi/products/gpio-hammer-header) (get the version *with the jig*) · [PiShop (male header)](https://www.pishop.us/product/hammer-header-male-solderless-raspberry-pi-connector/)
 
+**Any Raspberry Pi from the Pi 3 onward works with this project, with no code changes:** Pi Zero 2 W, Pi 3 A+, Pi 3 B, Pi 3 B+, Pi 4, Pi 5. That makes a **used board** a good option: check eBay, Facebook Marketplace, or local classifieds (e.g. leboncoin in France). Ask the seller to confirm it boots. Notes:
+- **Pi 3 B / 3 B+:** bigger (85 × 56 mm) but fits the top plate; standard camera cable; micro-USB power, 2.5 A.
+- **Pi 5:** uses the *narrow* camera cable (like the Zero); wants a 5 A USB-C supply, but runs this rover fine on a 3 A power bank because nothing is plugged into its USB ports.
+- ❌ **Not** the original Pi Zero / Zero W (version 1): too slow, and the Claude library doesn't install well on it.
+
+If no Pi is available at a price you like, **build Option B now.** ESP32-CAM boards are sold by many sellers and are rarely all sold out. Everything else in your cart (chassis, motor driver, batteries, wires, power bank) is the same.
+
 **Get alerted when Pi Zeros come back:** [rpilocator.com](https://rpilocator.com) tracks stock at official sellers and can notify you.
 
 ### Option B extras
