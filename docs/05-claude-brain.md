@@ -101,12 +101,11 @@ tmux attach -t rover
 
 ### Headlights in missions
 
-Two things control the headlights, and they work together:
+**Claude is in charge of the headlights.** Each step, it's told whether the lights are on and how bright the photo is, from 0 (black) to 255 (white). It can spend a step on the move `lights_on` or `lights_off`, for example switching them on when the photo is too dark to see obstacles, or off in a bright room to save battery. You'll see this in the output as `move: lights_on 0`, and in `report.html`.
 
-1. **Automatic:** before each step, the code measures how bright the photo is, from 0 (black) to 255 (white). If it's below `DARK_THRESHOLD` (60) and the lights are off, it switches them on and takes the photo again, *before* asking Claude. You'll see `It's dark (brightness 23) - headlights on.`
-2. **Claude:** Claude is told whether the lights are on and how bright the photo is. It can choose the moves `lights_on` or `lights_off`, for example switching them off in a bright room to save battery, or on when a corner looks murky even though the photo isn't "dark" overall.
+Watching *when* Claude decides to use the lights is a nice window into how it judges a scene. The system prompt tells it never to drive into darkness it can't see (look for `LIGHTS_TIP` in `rover/brain.py`). Try editing that line and see how its behaviour changes.
 
-The automatic rule only ever switches the lights **on**. If Claude switches them off in a room that's still dark, they come back on at the next step. Set `AUTO_LIGHTS = False` in `config.py` to leave the lights entirely up to Claude: a fun experiment in how well it judges darkness by itself.
+**Optional safety net:** set `AUTO_LIGHTS = True` in `config.py` and the code will *also* switch the lights on by itself whenever a photo is darker than `DARK_THRESHOLD` (60), before Claude even sees it. You'll then see `It's dark (brightness 23) - headlights on.` This rule only ever switches lights **on**, never off.
 
 ## Step 4: Review what Claude saw
 

@@ -243,7 +243,8 @@ def cmd_mission(args) -> None:
         print(f"MISSION: {args.mission}")
         print(f"Brain: {brain.model} (effort {brain.effort}). Logging to {folder}")
         if rover.has_lights:
-            auto = "auto-on when dark" if config.AUTO_LIGHTS else "Claude-controlled"
+            auto = ("Claude-controlled, plus auto-on when dark" if config.AUTO_LIGHTS
+                    else "Claude-controlled")
             print(f"Headlights: fitted ({auto})")
         print("Press Ctrl+C at any time to stop the rover.\n")
         try:

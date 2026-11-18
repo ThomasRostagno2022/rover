@@ -90,7 +90,7 @@ What these are:
 - `git` downloads code
 - `python3-venv` creates private Python environments
 - `gpiozero` + `lgpio` control the GPIO pins
-- `pil` (Pillow) measures how dark a photo is, for the automatic headlights
+- `pil` (Pillow) measures how dark each photo is, so Claude can decide when to use the headlights
 - `picamera2` controls the camera
 
 **3. Download this project onto the Pi.** If the project is on your GitHub, run:
@@ -303,7 +303,7 @@ In step 2, move your hand toward and away from the sensor. The numbers should ch
 
 ## Phase 8: Headlights → test
 
-Claude can only drive as well as it can see. With headlights the rover can explore under furniture, in dim rooms and at night. The code switches them on **automatically** when a photo is too dark, and Claude can switch them on and off itself.
+Claude can only drive as well as it can see. With headlights the rover can explore under furniture, in dim rooms and at night. During missions **Claude decides** when to switch them on and off.
 
 **Power off first.** Then choose one of the two versions. Both use the same Pi pin and the same code.
 

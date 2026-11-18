@@ -5,6 +5,7 @@ anthropic>=2.10
 # On the Raspberry Pi, gpiozero and picamera2 come pre-installed with
 # Raspberry Pi OS. That is why the Pi instructions create the virtual
 # environment with --system-site-packages.
-# Pillow measures how dark a photo is (for automatic headlights). Optional:
-# without it the rover still works, only the auto-lights feature is off.
+# Pillow measures how dark each photo is; the number is given to Claude to
+# help it decide about the headlights. Optional: without it the rover still
+# works and Claude judges darkness from the photo alone.
 pillow

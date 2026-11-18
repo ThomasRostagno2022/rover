@@ -91,7 +91,7 @@ rover/                     Python package: the software
     pi.py                  Option A/C: Raspberry Pi + camera + TB6612 + ultrasonic
     esp32.py               Option B: talks to the ESP32-CAM over WiFi
     sim.py                 no hardware: photos from a folder
-  vision.py                measures photo brightness (for automatic headlights)
+  vision.py                measures photo brightness (told to Claude for headlight decisions)
 firmware/esp32cam_rover/   Option B: Arduino program for the ESP32-CAM
 docs/                      the step-by-step guides
 sim_images/                put test photos here for the simulator

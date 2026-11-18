@@ -57,8 +57,14 @@ That's normal with cheap motors. It doesn't matter much, because Claude corrects
 - Version 1 is *meant* to be dim. For real light, build version 2.
 - ESP32-CAM: after updating the firmware, press 💡 on the rover's web page. If the page has no 💡 button, the new firmware isn't on the board yet.
 
-### Headlights never switch on automatically
-- `AUTO_LIGHTS` must be `True` in `config.py`.
+### Claude never switches the headlights on
+- Check the start of the mission output says `Headlights: fitted (Claude-controlled)`. If it doesn't, set `USE_HEADLIGHTS = True` in `config.py` (Pi).
+- Look at the `Brightness:` values in `report.html`. Cameras brighten dim scenes automatically, so a room that looks dark to you may look "fine" to the camera, and Claude reasonably leaves the lights off.
+- To nudge it, make the tip in `LIGHTS_TIP` (in `rover/brain.py`) stronger, e.g. "Switch the headlights on whenever brightness is below 80."
+- Or turn on the safety net: `AUTO_LIGHTS = True` in `config.py`.
+
+### Headlights never switch on automatically (only with `AUTO_LIGHTS = True`)
+- `AUTO_LIGHTS` must be `True` in `config.py`. It's off by default, because Claude controls the lights.
 - Pillow must be installed (`python3 -c "import PIL"` should print nothing). On the Pi, run `sudo apt install -y python3-pil`; on a laptop, `pip install pillow`.
 - Your room may not count as "dark" for the camera, because cameras brighten dim scenes automatically. Raise `DARK_THRESHOLD` (e.g. to 80), and check the `Brightness:` values in `report.html` to choose a good number.
 

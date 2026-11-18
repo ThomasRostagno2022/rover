@@ -74,10 +74,13 @@ SAFETY_STOP_CM = 20
 USE_HEADLIGHTS = True
 HEADLIGHT_PIN = 26        # physical pin 37 (GND is right next to it, pin 39)
 
-# Switch the headlights on automatically when a photo is darker than this
-# (average brightness 0 = black ... 255 = white). Claude can also switch
-# them on and off itself.
-AUTO_LIGHTS = True
+# During missions CLAUDE decides when to switch the headlights on and off.
+# It is told whether they are on and how bright each photo is
+# (0 = black ... 255 = white).
+#
+# Optional safety net: set AUTO_LIGHTS = True to also switch them on
+# automatically whenever a photo is darker than DARK_THRESHOLD.
+AUTO_LIGHTS = False
 DARK_THRESHOLD = 60
 
 # ---------------------------------------------------------------------------
