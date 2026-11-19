@@ -9,6 +9,37 @@ Status: **concept design**. Nothing here has been built or tested on real hardwa
 
 ---
 
+## Your requirements (decided)
+
+### 1. As silent as possible
+| Noise source | What we do |
+|---|---|
+| **Motors** | Slow moves only, and **no movement at all during sleep hours**. Version C uses **brushless gimbal motors** with smooth control (FOC), the kind used in camera stabilisers. Makers report them near-silent at low speed, but they need careful tuning. A **spring-balanced arm** (like a classic architect's lamp) means the motors barely work. |
+| **Cooling fan** | The official Pi 5 cooler stays **off below 50 °C**, and a Pi 5 with a heatsink idles around 45 °C. Heavy AI jobs are scheduled for when you're out, so the fan shouldn't run at night. The threshold can be raised in settings. |
+| **Light dimming** | LEDs are driven at **25 kHz or more**: above human hearing (no buzz) and flicker-free. The IEEE 1789 flicker guideline references about 3 kHz; 25 kHz+ is a common vendor recommendation. |
+| **Power** | A **fanless** adapter from a good brand (cheap ones can whine), and **no relays** (they click). |
+| **Controls** | A **touch strip** on the base: silent and works in the dark. No buttons, no microphone. |
+
+### 2. Wake-up light (sunrise)
+- **Starts 30 minutes before your alarm.** It begins as a barely visible deep red-amber glow, warms to soft white, and reaches **about 250 lux at your pillow** at wake time.
+- **The evidence:** small lab studies found a 30-minute "artificial dawn" rising to roughly 100–300 lux improved how alert and good-humoured people *felt* after waking, compared with no light or a light switched on suddenly. They didn't find better cognitive performance. It's a modest benefit, but a real one.
+- **A smooth, dark start** needs very fine dimming steps: ordinary 8-bit dimming visibly "steps" at low brightness. A small **Raspberry Pi Pico** handles the lights with fine-grained, high-frequency dimming.
+- **Reliability:** the sunrise runs on the Pico, **independently of the AI computer**, so it still works if the Pi is busy, updating or restarting. Snooze with a long press on the base.
+- No sound by default, and **no movement until you're awake**.
+
+### 3. LED: good quality, with colour
+Two layers:
+- **Main light: tunable white, CRI 95+, 2200 K (candle-warm) to 5000 K (daylight).** High CRI means colours and skin look natural, which matters for reading. Such strips exist (for example a 95+ CRI, 2200–5000 K, 24 V strip). We'd use a short length arranged in the head, with ~1000 lumens of headroom for the sunrise.
+- **Colour layer: an RGB ring** for the deep red-amber start of the sunrise, night light, focus colour and mood. Colours are TBD.
+- **Why not one all-in-one RGB+white LED?** In my research, products combining RGB, warm white and CRI 95 either don't go warm enough (often 2800 K at the warm end) or quote inconsistent CRI. Two layers give better light.
+
+### 4. Power: plugged into the wall, not a battery
+- **The wake-up light needs the lamp on all night**, every night. A battery would need charging every day.
+- The Pi 5 alone draws about **2–3 W idle** (reported). Running 24/7 that's roughly **25 kWh a year, a few dollars**, depending on your electricity rate.
+- Batteries would add cost, weight, heat and fire-safety care for no real benefit on a desk or nightstand.
+- An **RTC battery** (a tiny clock battery for the Pi 5) and the Pico keep the time and alarm correct through power cuts.
+- One slim cable from a fanless wall adapter.
+
 ## What it does
 
 ### Everywhere
@@ -55,15 +86,18 @@ These local models are **less capable than Claude**: good at "two mugs and loose
 
 ## Estimated cost
 
+Updated after the requirements above (better LEDs, Pico controller, fanless power, RTC battery, touch strip):
+
 | | Version | Estimate |
 |---|---|---|
-| **A** | Smart lamp, **no motion** (fixed stand, all the AI and light features) | **≈ $254–346** |
-| **B** | Robot lamp, **3 joints** (turns, leans, tilts its head) | **≈ $358–473** |
-| **C** | Robot lamp, **4 joints** (adds an elbow, as in the 3D model) | **≈ $386–504** |
+| **A** | Smart lamp, **no motion**: silent, all light, wake-up and AI features on a fixed stand | **≈ $304–433** |
+| **B** | Robot lamp, 4 joints with **quiet servos** | **≈ $434–590** |
+| **C** | Robot lamp, 4 joints with **near-silent brushless motors** and a spring-balanced arm | **≈ $442–686** |
 
 The full parts list with per-part prices is in the 3D model's cost panel. The two big items:
 - **Raspberry Pi 5, 8 GB: ≈ $125–175.** It launched at $80, but memory shortages pushed it up several times in 2026, and sources disagree on today's exact price. It's needed to run the vision model on the lamp.
 - **4 smart servos (Feetech STS3215, 12 V): ≈ $28–31 each.** Cheaper hobby servos buzz and jitter, which conflicts with the no-noise requirement.
+- **Brushless gimbal motors** (version C) are estimates. They vary a lot in price, and need motor drivers and tuning.
 
 **This is well above the $50–150 per-project budget.** Ways to bring it down:
 1. **Build in stages:** version A first, then add motors later. The cost is spread out and everything is reused.

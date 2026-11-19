@@ -160,40 +160,44 @@ const $ = id => document.getElementById(id);
 const PARTS = {
   base:    { name: "Weighted base", info: "Houses the computer and power. A steel plate inside keeps the lamp from tipping when the arm reaches out.", size: "Ø150 × 40 mm" },
   pi:      { name: "Raspberry Pi 5 (8 GB) + cooler", info: "The lamp's brain. Runs every AI model locally: phone and hand detection continuously, a small vision-language model (Moondream class) for daily desk checks, and a small text model for weekly summaries. Needs its fan under AI load.", size: "85 × 56 mm board" },
-  power:   { name: "Power: 12 V adapter + 5 V converter", info: "One plug. 12 V feeds the motors; a converter makes clean 5 V / 5 A for the Pi 5.", size: "barrel jack at the back" },
+  power:   { name: "Power: fanless wall adapter", info: "Plugged into the wall (no battery): the wake-up light needs the lamp on all night. One slim cable; converters inside make 5 V for the Pi and power the LEDs and motors. Pick a fanless adapter from a good brand: cheap ones can whine.", size: "barrel jack at the back" },
+  pico:    { name: "Raspberry Pi Pico: light, touch and alarm controller", info: "A tiny second computer that runs the lights (flicker-free, above hearing range, very fine dimming for the dark start of the sunrise), the touch strip, and the wake-up schedule. The sunrise works even if the AI computer is busy, updating or restarting.", size: "51 × 21 mm" },
+  touch:   { name: "Touch strip on the base", info: "Silent manual control without the camera: tap = on/off, slide = brightness, long press = snooze.", size: "≈ 60 mm strip" },
   driver:  { name: "Servo bus adapter", info: "Talks to all motors over one daisy-chained cable (Waveshare Bus Servo Adapter A).", size: "≈ 30 × 25 mm" },
-  servos:  { name: "Smart servos (Feetech STS3215, 12 V)", info: "Quiet-ish serial bus servos with position feedback: base turn, shoulder, elbow, head tilt. Moves are slow and rare to respect your no-noise rule. Vendor quotes ≈ 45 dB while moving (not independently verified).", size: "≈ 45 × 25 × 35 mm each" },
-  arm:     { name: "Arm links", info: "Pairs of aluminium flat bars (or plywood), cut and drilled with your power tools.", size: "160 mm + 140 mm" },
-  head:    { name: "Head: light + camera", info: "A warm, high-quality white LED for reading, an RGB ring that shows the lamp's 'mood', a wide camera, a physical shutter, and a tiny 'camera on' light. No microphone.", size: "Ø85 × 75 mm shade" },
+  servos:  { name: "Joint motors", info: "Version B: Feetech STS3215 smart servos (vendor quotes ≈ 45 dB while moving, not verified). Version C: brushless gimbal motors with smooth control (FOC), the kind used in camera stabilisers; makers report them near-silent at low speed, but they need careful tuning. Either way: slow moves, and no movement at all during sleep hours.", size: "≈ 45 × 25 × 35 mm (servo) / Ø28–35 mm (gimbal)" },
+  arm:     { name: "Arm links (spring-balanced)", info: "Aluminium flat bars cut with your power tools. Springs balance the arm's weight like a classic architect's lamp, so the motors barely work: quieter, cooler, and it holds position with power off.", size: "160 mm + 140 mm" },
+  head:    { name: "Head: light + camera", info: "Main light: a high-quality tunable-white LED (CRI 95+, from 2200 K candle-warm to 5000 K daylight, ~1000 lumens of headroom) for reading and the sunrise. Plus an RGB ring for colour, a wide camera, a physical shutter and a 'camera on' light. No microphone.", size: "Ø85 × 75 mm shade" },
   camera:  { name: "Camera Module 3 Wide + shutter", info: "120° wide view so it sees the desk or the bed. A sliding shutter physically covers it; the small LED beside it is on whenever the camera is in use.", size: "25 × 24 mm" },
-  ring:    { name: "RGB mood ring", info: "16 colour LEDs around the shade: blue = focus session, amber = winding down, soft pulse = thinking.", size: "Ø80 mm ring" },
+  ring:    { name: "RGB colour ring", info: "Colour layer (colours TBD): deep red-amber for the first minutes of the sunrise and for night light, blue for focus sessions, any colour you like for mood.", size: "Ø80 mm ring" },
   sensor:  { name: "Ambient light sensor", info: "Measures room light so the lamp dims and brightens on its own, without using the camera.", size: "tiny board under the head" },
 };
 
 const BOM = [
-  // [label, low, high, source, part, tiers] tiers: A = no motion, B = 3 joints, C = 4 joints
+  // [label, low, high, source, part, tiers] A = no motion, B = 4 joints with quiet servos, C = 4 joints with brushless gimbal motors
   ["Raspberry Pi 5, 8 GB", 125, 175, "listing*", "pi", "ABC"],
-  ["Active cooler for Pi 5", 5, 6, "est.", "pi", "ABC"],
+  ["Active cooler (fan off below 50 °C)", 5, 6, "est.", "pi", "ABC"],
   ["microSD card, 64 GB", 10, 12, "est.", "pi", "ABC"],
+  ["RTC clock battery for Pi 5", 5, 6, "est.", "pi", "ABC"],
+  ["Raspberry Pi Pico (lights, touch, alarm)", 4, 6, "est.", "pico", "ABC"],
   ["Camera Module 3 Wide + Pi 5 camera cable", 38, 40, "listing", "camera", "ABC"],
-  ["Warm white high-CRI LED + dimmer", 12, 18, "est.", "head", "ABC"],
-  ["RGB LED ring (16 LEDs)", 6, 10, "est.", "ring", "ABC"],
-  ["Ambient light sensor", 3, 5, "est.", "sensor", "ABC"],
+  ["Tunable white LED, CRI 95+, 2200–5000 K", 25, 45, "est.", "head", "ABC"],
+  ["RGB colour ring", 6, 10, "est.", "ring", "ABC"],
+  ["Flicker-free LED drivers (25 kHz+)", 8, 12, "est.", "pico", "ABC"],
+  ["Touch strip + ambient light sensor", 5, 10, "est.", "touch", "ABC"],
   ["Camera shutter + 'camera on' LED", 1, 3, "est.", "camera", "ABC"],
+  ["Fanless 24 V adapter + converters", 30, 45, "est.", "power", "ABC"],
   ["Base: steel weight plate + housing", 15, 25, "est.", "base", "ABC"],
   ["Wires, connectors, screws", 12, 18, "est.", "base", "ABC"],
-  ["Fixed stand (no-motion version only)", 15, 20, "est.", "arm", "A"],
-  ["Pi 5 power supply (no-motion version)", 12, 14, "est.", "power", "A"],
-  ["12 V 5 A adapter + 5 V/5 A converter", 22, 30, "est.", "power", "BC"],
-  ["Servo bus adapter (Waveshare)", 5, 6, "listing", "driver", "BC"],
-  ["STS3215 12 V servo × 3", 84, 95, "listing", "servos", "B"],
-  ["STS3215 12 V servo × 4", 112, 126, "listing", "servos", "C"],
-  ["Arm links + servo brackets", 20, 30, "est.", "arm", "BC"],
+  ["Fixed stand (version A only)", 15, 20, "est.", "arm", "A"],
+  ["Arm links + springs + brackets", 28, 45, "est.", "arm", "BC"],
+  ["STS3215 servos × 4 + bus adapter", 117, 132, "listing", "servos", "B"],
+  ["Brushless gimbal motors + encoders × 4", 80, 140, "est.", "servos", "C"],
+  ["Motor drivers (FOC) × 4 + controller", 45, 88, "est.", "servos", "C"],
 ];
 const TIERS = [
-  { id: "A", name: "Smart lamp, no motion", note: "Light + camera + all the AI, on a fixed stand. Add motors later." },
-  { id: "B", name: "Robot lamp, 3 joints", note: "Turns, leans and tilts its head. Enough for every feature." },
-  { id: "C", name: "Robot lamp, 4 joints", note: "Adds an elbow: more reach and more expressive. The model shows this one." },
+  { id: "A", name: "Smart lamp, no motion", note: "Silent except a fan that stays off at idle. All light, wake-up and AI features on a fixed stand." },
+  { id: "B", name: "Robot lamp, quiet servos", note: "4 joints. Quiet-ish when moving; never moves during sleep hours. Simplest robot version." },
+  { id: "C", name: "Robot lamp, near-silent motors", note: "4 joints with brushless gimbal motors and a spring-balanced arm. Quietest, but the hardest to tune." },
 ];
 
 const FEATURES = {
@@ -210,7 +214,9 @@ const FEATURES = {
     ["Reading light", "Aims at your book, not at your partner's side.", "local"],
     ["Phone-in-bed nudge", "Notices the phone after lights-out and dims to a reminder glow. Optional.", "local"],
     ["Sleep timer", "Fades out after 20 min of reading.", "local"],
-    ["Sunrise wake-up", "Rises and brightens over 20–30 min before your alarm.", "local"],
+    ["Sunrise wake-up", "30 min before your alarm: deep red-amber, then warm white, reaching ~250 lux at your pillow. Silent; it works even if the AI computer restarts.", "local"],
+    ["Silent nights", "No movement and no fan during sleep hours; heavy AI jobs run while you're out.", "silence"],
+    ["Touch to snooze", "Long-press the base. Works in the dark, with the camera shutter closed.", "silent"],
     ["Camera-off mode", "Close the shutter: everything except gestures and nudges still works.", "privacy"],
   ]},
   living: { title: "What it does in the living room", list: [
@@ -229,7 +235,7 @@ const MODES = [
   { id: "look",   name: "Look at you",  s: 10, e: 40,  w: 30, yaw: 0,   light: 0.35, ring: 0xffffff, desc: "Turns to face you when you arrive. This is the 'expressive' part of the robot." },
   { id: "phone",  name: "Phone nudge",  s: 15, e: 70,  w: 60, yaw: 18,  light: 0.5,  ring: 0xe8763f, desc: "Saw a phone in your hand during focus time: it slowly looks at it, then at you. Silent." },
   { id: "wind",   name: "Wind-down",    s: 20, e: 110, w: 40, yaw: 0,   light: 0.3,  ring: 0xb45309, desc: "Evening: dim amber, lower posture. Signals it's time to put the screens away." },
-  { id: "sun",    name: "Sunrise",      s: 0,  e: 15,  w: 60, yaw: 0,   light: 1.0,  ring: 0xffd27a, desc: "Before your alarm it rises and brightens slowly, like a sunrise." },
+  { id: "sun",    name: "Sunrise",      s: 0,  e: 15,  w: 60, yaw: 0,   light: 1.0,  ring: 0xffd27a, desc: "30 minutes before your alarm: starts as a barely-there red-amber glow, warms to soft white and reaches ~250 lux at your pillow. No sound, no movement until you're awake." },
 ];
 
 // ---------------------------------------------------------------- three setup
@@ -275,6 +281,9 @@ inside.add(tag(box(30, 9, 30, M(0x9aa0a6, { metalness: 0.7 }), 0, 17, 5), "pi"))
 inside.add(tag(box(25, 1.6, 30, M(0x1f5aa6), 42, 12, -30), "driver"));
 inside.add(tag(box(20, 12, 40, M(0x2f6f3f), 40, 16, 32), "power"));
 inside.add(tag(cyl(5, 12, M(0x111111), "x", -76, 14, 0), "power"));
+inside.add(tag(box(21, 1.6, 51, M(0x1d7a4b), -42, 12, -32), "pico"));
+const touchStrip = tag(box(4, 6, 60, M(0x9aa0a6, { metalness: 0.6, roughness: 0.3 }), 76.5, 22, 0), "touch");
+touchStrip.rotation.z = -0.07; lamp.add(touchStrip);
 inside.visible = false;
 
 // servo helper: body with output axis along local Z (for pitch joints) or Y (yaw)
