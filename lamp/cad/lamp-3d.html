@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Focus Lamp 3D</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap">
+<style>
+/* Layout: 3D stage left, spec sheet right (stacks on phones).
+   Palette: warm lamplight amber on graphite + paper. */
+:root {
+  --bg: #f1efea;
+  --surface: #fbfaf7;
+  --stage: #e4e1d9;
+  --ink: #1f1d1a;
+  --muted: #6a655d;
+  --line: #d4cfc5;
+  --accent: #b5651d;
+  --accent-ink: #ffffff;
+  --sel: #2c6e8f;
+  --font-display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161513; --surface: #1e1c19; --stage: #11100e; --ink: #ece7df;
+    --muted: #a39b8f; --line: #35312b; --accent: #e29a4f; --accent-ink: #1a1007;
+    --sel: #6fb2d4; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #161513; --surface: #1e1c19; --stage: #11100e; --ink: #ece7df;
+  --muted: #a39b8f; --line: #35312b; --accent: #e29a4f; --accent-ink: #1a1007;
+  --sel: #6fb2d4; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font: 14px/1.5 var(--font-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px 28px;
+}
+header { max-width: 1280px; margin: 0 auto 12px; display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: end; justify-content: space-between; }
+h1 { font: 700 28px/1.1 var(--font-display); margin: 0; text-wrap: balance; }
+.sub { color: var(--muted); margin: 4px 0 0; max-width: 64ch; }
+.seg { display: flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { font: 500 13px var(--font-body); color: var(--ink); background: var(--surface); border: 0; border-right: 1px solid var(--line); padding: 7px 12px; cursor: pointer; }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+button:focus-visible, label:focus-within { outline: 2px solid var(--sel); outline-offset: 2px; }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; max-width: 1280px; margin: 0 auto; }
+@media (max-width: 920px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+.left { display: grid; gap: 10px; min-width: 0; align-content: start; }
+.stage { position: relative; background: var(--stage); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; height: min(68vh, 600px); min-height: 360px; }
+#c { display: block; width: 100%; height: 100%; touch-action: none; }
+.pip-label { position: absolute; top: 18px; right: 18px; pointer-events: none; font: 500 11px var(--font-mono); letter-spacing: .04em; text-transform: uppercase; color: #fff; background: rgba(0,0,0,.55); padding: 2px 6px; border-radius: 4px; }
+.hint { position: absolute; left: 12px; bottom: 10px; font: 12px var(--font-mono); color: var(--muted); pointer-events: none; }
+.modebar { display: grid; gap: 6px; }
+.modebar .lbl { font: 600 12px var(--font-body); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.modedesc { margin: 0; color: var(--muted); min-height: 3em; }
+aside { display: grid; gap: 12px; align-content: start; min-width: 0; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; min-width: 0; }
+.panel h2 { font: 600 12px var(--font-body); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 8px; }
+.toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+.toggles label { display: flex; gap: 6px; align-items: center; cursor: pointer; font-size: 13px; }
+.toggles input { accent-color: var(--accent); }
+ul.feat { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+ul.feat li span { color: var(--muted); }
+.tag { display: inline-block; font: 500 10.5px var(--font-mono); padding: 0 5px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted); margin-left: 4px; vertical-align: 1px; }
+table.bom { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+table.bom td { padding: 3px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.bom td.p { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; padding-left: 8px; }
+table.bom td.s { color: var(--muted); font-size: 11px; white-space: nowrap; padding-left: 8px; }
+.tiers { display: grid; gap: 6px; margin-top: 10px; }
+.tier { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; }
+.tier.on { border-color: var(--accent); }
+.tier b { font-weight: 600; }
+.tier .p { font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tier small { grid-column: 1 / -1; color: var(--muted); }
+#info h3 { font: 600 16px var(--font-display); margin: 0 0 4px; }
+#info p { margin: 4px 0; }
+.note { color: var(--muted); font-size: 12px; margin: 6px 0 0; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<header>
+  <div>
+    <h1>Focus Lamp</h1>
+    <p class="sub">A robot desk lamp with all its AI running on the lamp itself. Pick a place and a mode to see what it does. Real size, in millimetres.</p>
+  </div>
+  <div class="seg" role="group" aria-label="Where the lamp lives" id="places">
+    <button type="button" data-place="desk" aria-pressed="true">Desk</button>
+    <button type="button" data-place="bed" aria-pressed="false">Bedside</button>
+    <button type="button" data-place="living" aria-pressed="false">Living room</button>
+  </div>
+</header>
+
+<div class="layout">
+  <div class="left">
+    <section class="stage" aria-label="3D view of the lamp">
+      <canvas id="c"></canvas>
+      <div class="pip-label" id="pipLabel">What the lamp sees</div>
+      <div class="hint">Drag to orbit · scroll or pinch to zoom · click a part</div>
+    </section>
+    <div class="modebar">
+      <div class="lbl">Mode</div>
+      <div class="seg" role="group" aria-label="Lamp mode" id="modes"></div>
+      <p class="modedesc" id="modeDesc"></p>
+    </div>
+  </div>
+
+  <aside>
+    <div class="panel">
+      <h2>View</h2>
+      <div class="toggles">
+        <label><input type="checkbox" id="tPip" checked> Lamp's-eye view</label>
+        <label><input type="checkbox" id="tFov"> Camera view cone</label>
+        <label><input type="checkbox" id="tXray"> See inside the base</label>
+        <label><input type="checkbox" id="tDark"> Evening light</label>
+        <label><input type="checkbox" id="tPerson" checked> Show a person</label>
+        <label><input type="checkbox" id="tSpin"> Turntable</label>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 id="featTitle">What it does at your desk</h2>
+      <ul class="feat" id="feats"></ul>
+    </div>
+
+    <div class="panel" id="info" aria-live="polite">
+      <h2>Selected part</h2>
+      <h3>Click a part</h3>
+      <p class="note">Click any part of the lamp, or a row in the cost table.</p>
+    </div>
+
+    <div class="panel">
+      <h2>Estimated cost</h2>
+      <table class="bom"><tbody id="bom"></tbody></table>
+      <div class="tiers" id="tiers"></div>
+      <p class="note">"Listing" = a price seen in a store listing in Nov 2026. "Est." = typical price for that kind of part. Prices move a lot this year, especially the Raspberry Pi.</p>
+    </div>
+  </aside>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(() => {
+"use strict";
+// Units: millimetres. The lamp faces +X. Up is +Y. Table top is y = 0.
+const $ = id => document.getElementById(id);
+
+// ---------------------------------------------------------------- data
+const PARTS = {
+  base:    { name: "Weighted base", info: "Houses the computer and power. A steel plate inside keeps the lamp from tipping when the arm reaches out.", size: "Ø150 × 40 mm" },
+  pi:      { name: "Raspberry Pi 5 (8 GB) + cooler", info: "The lamp's brain. Runs every AI model locally: phone and hand detection continuously, a small vision-language model (Moondream class) for daily desk checks, and a small text model for weekly summaries. Needs its fan under AI load.", size: "85 × 56 mm board" },
+  power:   { name: "Power: 12 V adapter + 5 V converter", info: "One plug. 12 V feeds the motors; a converter makes clean 5 V / 5 A for the Pi 5.", size: "barrel jack at the back" },
+  driver:  { name: "Servo bus adapter", info: "Talks to all motors over one daisy-chained cable (Waveshare Bus Servo Adapter A).", size: "≈ 30 × 25 mm" },
+  servos:  { name: "Smart servos (Feetech STS3215, 12 V)", info: "Quiet-ish serial bus servos with position feedback: base turn, shoulder, elbow, head tilt. Moves are slow and rare to respect your no-noise rule. Vendor quotes ≈ 45 dB while moving (not independently verified).", size: "≈ 45 × 25 × 35 mm each" },
+  arm:     { name: "Arm links", info: "Pairs of aluminium flat bars (or plywood), cut and drilled with your power tools.", size: "160 mm + 140 mm" },
+  head:    { name: "Head: light + camera", info: "A warm, high-quality white LED for reading, an RGB ring that shows the lamp's 'mood', a wide camera, a physical shutter, and a tiny 'camera on' light. No microphone.", size: "Ø85 × 75 mm shade" },
+  camera:  { name: "Camera Module 3 Wide + shutter", info: "120° wide view so it sees the desk or the bed. A sliding shutter physically covers it; the small LED beside it is on whenever the camera is in use.", size: "25 × 24 mm" },
+  ring:    { name: "RGB mood ring", info: "16 colour LEDs around the shade: blue = focus session, amber = winding down, soft pulse = thinking.", size: "Ø80 mm ring" },
+  sensor:  { name: "Ambient light sensor", info: "Measures room light so the lamp dims and brightens on its own, without using the camera.", size: "tiny board under the head" },
+};
+
+const BOM = [
+  // [label, low, high, source, part, tiers] tiers: A = no motion, B = 3 joints, C = 4 joints
+  ["Raspberry Pi 5, 8 GB", 125, 175, "listing*", "pi", "ABC"],
+  ["Active cooler for Pi 5", 5, 6, "est.", "pi", "ABC"],
+  ["microSD card, 64 GB", 10, 12, "est.", "pi", "ABC"],
+  ["Camera Module 3 Wide + Pi 5 camera cable", 38, 40, "listing", "camera", "ABC"],
+  ["Warm white high-CRI LED + dimmer", 12, 18, "est.", "head", "ABC"],
+  ["RGB LED ring (16 LEDs)", 6, 10, "est.", "ring", "ABC"],
+  ["Ambient light sensor", 3, 5, "est.", "sensor", "ABC"],
+  ["Camera shutter + 'camera on' LED", 1, 3, "est.", "camera", "ABC"],
+  ["Base: steel weight plate + housing", 15, 25, "est.", "base", "ABC"],
+  ["Wires, connectors, screws", 12, 18, "est.", "base", "ABC"],
+  ["Fixed stand (no-motion version only)", 15, 20, "est.", "arm", "A"],
+  ["Pi 5 power supply (no-motion version)", 12, 14, "est.", "power", "A"],
+  ["12 V 5 A adapter + 5 V/5 A converter", 22, 30, "est.", "power", "BC"],
+  ["Servo bus adapter (Waveshare)", 5, 6, "listing", "driver", "BC"],
+  ["STS3215 12 V servo × 3", 84, 95, "listing", "servos", "B"],
+  ["STS3215 12 V servo × 4", 112, 126, "listing", "servos", "C"],
+  ["Arm links + servo brackets", 20, 30, "est.", "arm", "BC"],
+];
+const TIERS = [
+  { id: "A", name: "Smart lamp, no motion", note: "Light + camera + all the AI, on a fixed stand. Add motors later." },
+  { id: "B", name: "Robot lamp, 3 joints", note: "Turns, leans and tilts its head. Enough for every feature." },
+  { id: "C", name: "Robot lamp, 4 joints", note: "Adds an elbow: more reach and more expressive. The model shows this one." },
+];
+
+const FEATURES = {
+  desk: { title: "What it does at your desk", list: [
+    ["Focus sessions", "Start a 25–50 min block with a wave; the ring turns blue and the light follows your work.", "local"],
+    ["Phone nudge", "Sees a phone in your hand during a session and slowly turns to look at you. No sound.", "local"],
+    ["Task light that follows you", "Aims at your hands or the book you're reading.", "local"],
+    ["Break reminder", "After a long stretch it 'stretches' itself, then dims for 2 minutes.", "local"],
+    ["End-of-day desk reset", "One photo, then a 2-minute tidy list on your phone. Takes the lamp ~10–25 s to think.", "local, slow"],
+    ["Weekly focus summary", "A short note: focus time, phone pickups, reading time.", "local"],
+  ]},
+  bed: { title: "What it does by your bed", list: [
+    ["Wind-down light", "From 9 pm it shifts to dim amber and lowers itself.", "local"],
+    ["Reading light", "Aims at your book, not at your partner's side.", "local"],
+    ["Phone-in-bed nudge", "Notices the phone after lights-out and dims to a reminder glow. Optional.", "local"],
+    ["Sleep timer", "Fades out after 20 min of reading.", "local"],
+    ["Sunrise wake-up", "Rises and brightens over 20–30 min before your alarm.", "local"],
+    ["Camera-off mode", "Close the shutter: everything except gestures and nudges still works.", "privacy"],
+  ]},
+  living: { title: "What it does in the living room", list: [
+    ["Reading nook light", "Follows the book in your lap; warm and dimmable with a hand gesture.", "local"],
+    ["Screen-time awareness", "Counts phone time on the sofa and shows it as a gentle ring colour.", "local"],
+    ["Plant check", "Turns toward a nearby plant once a week and notes changes.", "local, slow"],
+    ["Ambient mood light", "Soft colour accents in the evening; off when the room is empty.", "local"],
+    ["Wave to control", "Palm up = brighter, palm down = dimmer, wave = on/off. No microphone.", "local"],
+  ]},
+};
+
+const MODES = [
+  { id: "off",    name: "Resting",      s: 5,  e: 150, w: 20, yaw: 0,   light: 0,    ring: 0x000000, desc: "Folded low and dark. It wakes when it sees you sit down, or when you wave." },
+  { id: "focus",  name: "Focus",        s: 25, e: 80,  w: 55, yaw: 0,   light: 1.0,  ring: 0x3b82f6, desc: "Bright task light on your work. Blue ring = a focus session is running." },
+  { id: "read",   name: "Reading",      s: 40, e: 70,  w: 55, yaw: -10, light: 0.8,  ring: 0xf2b45a, desc: "Warm light aimed at the book. It follows the page if you move." },
+  { id: "look",   name: "Look at you",  s: 10, e: 40,  w: 30, yaw: 0,   light: 0.35, ring: 0xffffff, desc: "Turns to face you when you arrive. This is the 'expressive' part of the robot." },
+  { id: "phone",  name: "Phone nudge",  s: 15, e: 70,  w: 60, yaw: 18,  light: 0.5,  ring: 0xe8763f, desc: "Saw a phone in your hand during focus time: it slowly looks at it, then at you. Silent." },
+  { id: "wind",   name: "Wind-down",    s: 20, e: 110, w: 40, yaw: 0,   light: 0.3,  ring: 0xb45309, desc: "Evening: dim amber, lower posture. Signals it's time to put the screens away." },
+  { id: "sun",    name: "Sunrise",      s: 0,  e: 15,  w: 60, yaw: 0,   light: 1.0,  ring: 0xffd27a, desc: "Before your alarm it rises and brightens slowly, like a sunrise." },
+];
+
+// ---------------------------------------------------------------- three setup
+const canvas = $("c"), stageEl = canvas.parentElement;
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(35, 1, 5, 20000);
+camera.position.set(620, 560, 980);
+const controls = new THREE.OrbitControls(camera, canvas);
+controls.target.set(150, 170, 0);
+controls.enableDamping = true;
+controls.minDistance = 250; controls.maxDistance = 3500;
+controls.maxPolarAngle = Math.PI * 0.49;
+const hemi = new THREE.HemisphereLight(0xffffff, 0x8f8778, 0.7); scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xffffff, 0.75);
+sun.position.set(-500, 1200, 700); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -900, right: 900, top: 900, bottom: -900, near: 100, far: 3500 });
+scene.add(sun);
+
+const M = (c, o = {}) => new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.6, metalness: 0.05 }, o));
+function mesh(geo, mat, x = 0, y = 0, z = 0) { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; return m; }
+const box = (w, h, d, mat, x, y, z) => mesh(new THREE.BoxGeometry(w, h, d), mat, x, y, z);
+function cyl(r, h, mat, axis, x, y, z, seg = 40) { const m = mesh(new THREE.CylinderGeometry(r, r, h, seg), mat, x, y, z); if (axis === "x") m.rotation.z = Math.PI / 2; if (axis === "z") m.rotation.x = Math.PI / 2; return m; }
+function tag(obj, id) { obj.traverse(o => { if (o.isMesh) o.userData.part = id; }); return obj; }
+
+// ---------------------------------------------------------------- the lamp
+const graphite = () => M(0x2b2b2e, { roughness: 0.45, metalness: 0.3 });
+const alu = () => M(0xb8bcc0, { roughness: 0.35, metalness: 0.75 });
+const servoMat = () => M(0x1a1a1a, { roughness: 0.5 });
+const lamp = new THREE.Group(); scene.add(lamp);
+
+// base shell + internals
+const baseShellMat = M(0x2b2b2e, { roughness: 0.45, metalness: 0.3, transparent: true, opacity: 1 });
+const baseShell = tag(mesh(new THREE.CylinderGeometry(75, 78, 40, 64), baseShellMat, 0, 20, 0), "base");
+lamp.add(baseShell);
+const inside = new THREE.Group(); lamp.add(inside);
+inside.add(tag(cyl(70, 6, M(0x6b6f74, { metalness: 0.8, roughness: 0.4 }), "y", 0, 4, 0), "base"));
+inside.add(tag(box(56, 1.6, 85, M(0x1d7a4b), -5, 12, 0), "pi"));
+inside.add(tag(box(30, 9, 30, M(0x9aa0a6, { metalness: 0.7 }), 0, 17, 5), "pi"));
+inside.add(tag(box(25, 1.6, 30, M(0x1f5aa6), 42, 12, -30), "driver"));
+inside.add(tag(box(20, 12, 40, M(0x2f6f3f), 40, 16, 32), "power"));
+inside.add(tag(cyl(5, 12, M(0x111111), "x", -76, 14, 0), "power"));
+inside.visible = false;
+
+// servo helper: body with output axis along local Z (for pitch joints) or Y (yaw)
+function servo(axis) {
+  const g = new THREE.Group();
+  if (axis === "y") { g.add(box(25, 35, 45, servoMat(), 0, -17.5, 0)); g.add(cyl(11, 4, alu(), "y", 0, 2, 0)); }
+  else { g.add(box(45, 35, 25, servoMat(), 0, 0, 0)); g.add(cyl(11, 4, alu(), "z", 0, 0, -14.5)); g.add(cyl(11, 4, alu(), "z", 0, 0, 14.5)); }
+  return tag(g, "servos");
+}
+// FK chain
+const yaw = new THREE.Group(); yaw.position.set(0, 58, 0); lamp.add(yaw);
+yaw.add(servo("y"));
+yaw.add(tag(cyl(36, 6, graphite(), "y", 0, 6, 0), "arm"));
+const shoulder = new THREE.Group(); shoulder.position.set(0, 32, 0); yaw.add(shoulder);
+yaw.add(tag(box(30, 26, 8, graphite(), 0, 20, 20), "arm")); yaw.add(tag(box(30, 26, 8, graphite(), 0, 20, -20), "arm"));
+shoulder.add(servo("z"));
+const L1 = 160, L2 = 140;
+function linkBars(len) {
+  const g = new THREE.Group();
+  [-18, 18].forEach(z => g.add(box(18, len + 20, 3, alu(), 0, len / 2, z)));
+  return tag(g, "arm");
+}
+shoulder.add(linkBars(L1));
+const elbow = new THREE.Group(); elbow.position.set(0, L1, 0); shoulder.add(elbow);
+elbow.add(servo("z"));
+elbow.add(linkBars(L2));
+const wrist = new THREE.Group(); wrist.position.set(0, L2, 0); elbow.add(wrist);
+wrist.add(servo("z"));
+// head: built pointing along +Y of the wrist frame
+const head = new THREE.Group(); head.position.set(0, 18, 0); wrist.add(head);
+const shade = mesh(new THREE.CylinderGeometry(42, 24, 70, 48, 1, true), M(0x2b2b2e, { side: THREE.DoubleSide, roughness: 0.4, metalness: 0.3 }), 0, 45, 0);
+head.add(tag(shade, "head"));
+head.add(tag(cyl(24, 6, M(0x2b2b2e), "y", 0, 10, 0), "head"));
+const ledMat = M(0xfff1d6, { emissive: 0xffd9a0, emissiveIntensity: 0, roughness: 0.3 });
+const ledDisc = mesh(new THREE.CircleGeometry(22, 32), ledMat, 0, 16, 0);
+ledDisc.rotation.x = -Math.PI / 2; head.add(tag(ledDisc, "head"));
+const ringMat = M(0x222222, { emissive: 0x000000, emissiveIntensity: 1.4, roughness: 0.3 });
+const ring = mesh(new THREE.TorusGeometry(41, 2.4, 10, 48), ringMat, 0, 80, 0); ring.rotation.x = Math.PI / 2; head.add(tag(ring, "ring"));
+// camera on the side of the shade, looking along +Y (same as the light)
+const camMount = new THREE.Group(); camMount.position.set(0, 60, 44); head.add(camMount);
+camMount.add(tag(box(25, 9, 24, M(0x1d7a4b), 0, 0, 0), "camera"));
+camMount.add(tag(cyl(4.5, 6, M(0x0b0b0b, { metalness: 0.5 }), "y", 0, 7, 0), "camera"));
+const shutter = tag(box(14, 2, 12, M(0xb5651d), 9, 11, 0), "camera"); camMount.add(shutter);
+const camLedMat = M(0x330000, { emissive: 0xff2a2a, emissiveIntensity: 0 });
+camMount.add(tag(mesh(new THREE.SphereGeometry(1.8, 10, 8), camLedMat, -9, 6, 6), "camera"));
+head.add(tag(box(12, 3, 10, M(0x7a3fb0), 0, 22, -26), "sensor"));
+// the light itself
+const spot = new THREE.SpotLight(0xffd9a8, 0, 1600, 0.55, 0.5, 1.4);
+spot.castShadow = true; spot.shadow.mapSize.set(1024, 1024);
+spot.position.set(0, 30, 0); head.add(spot);
+const spotTarget = new THREE.Object3D(); spotTarget.position.set(0, 400, 0); head.add(spotTarget); spot.target = spotTarget;
+// camera cone (field of view) and the pip camera
+const fovCone = (() => {
+  const len = 600, hf = 51 * Math.PI / 180, vf = 33 * Math.PI / 180; // Camera Module 3 Wide ≈ 102° x 67°
+  const g = new THREE.Group();
+  const pts = [[1, 1], [1, -1], [-1, -1], [-1, 1]].map(([a, b]) => new THREE.Vector3(Math.tan(hf) * len * a, len, Math.tan(vf) * len * b));
+  const pos = []; pts.forEach(p => pos.push(0, 0, 0, p.x, p.y, p.z));
+  for (let i = 0; i < 4; i++) { const a = pts[i], b = pts[(i + 1) % 4]; pos.push(a.x, a.y, a.z, b.x, b.y, b.z); }
+  const lg = new THREE.BufferGeometry(); lg.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+  g.add(new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ color: 0xe29a4f })));
+  return g;
+})();
+camMount.add(fovCone); fovCone.position.set(0, 10, 0); fovCone.visible = false;
+const pipCam = new THREE.PerspectiveCamera(67, 4 / 3, 8, 6000);
+pipCam.userData.hfov = 102;
+
+// ---------------------------------------------------------------- places (props)
+const place = new THREE.Group(); scene.add(place);
+const room = new THREE.Group(); scene.add(room);
+const floorMat = M(0xcbc4b6, { roughness: 1 });
+const wall = mesh(new THREE.PlaneGeometry(6000, 2500), M(0xe8e2d6, { roughness: 1 }), 0, 300, -700); room.add(wall);
+const person = new THREE.Group(); scene.add(person);
+(function buildPerson() {
+  const skin = M(0xc9b8a6, { roughness: 0.8 }), cloth = M(0x55606b, { roughness: 0.9 });
+  person.add(mesh(new THREE.SphereGeometry(95, 32, 24), skin, 0, 0, 0));
+  person.add(mesh(new THREE.CylinderGeometry(45, 50, 60, 20), skin, 0, -110, 0));
+  const torso = mesh(new THREE.CylinderGeometry(150, 130, 480, 32), cloth, 0, -380, 0);
+  torso.scale.z = 0.62; person.add(torso);
+})();
+function buildPlace(kind) {
+  place.clear();
+  const wood = M(0x9a7752, { roughness: 0.7 }), paper = M(0xf6f4ee, { roughness: 0.95 });
+  if (kind === "desk") {
+    place.add(box(1500, 30, 800, wood, 250, -15, 0));
+    const lap = new THREE.Group(); lap.add(box(220, 14, 320, M(0x9aa0a6, { metalness: 0.6, roughness: 0.35 }), 0, 7, 0));
+    const scr = box(8, 210, 320, M(0x2a2d31, { metalness: 0.5 }), -105, 110, 0); scr.rotation.z = -0.25; lap.add(scr);
+    lap.position.set(430, 0, -170); place.add(lap);
+    place.add(cyl(40, 95, M(0x2f6f8f), "y", 280, 47.5, 230));
+    const p = box(297, 3, 210, paper, 260, 1.5, 40); p.rotation.y = 0.2; place.add(p);
+    const ph = box(150, 8, 72, M(0x111111, { metalness: 0.4, roughness: 0.3 }), 250, 4, 60); place.add(ph);
+    person.position.set(860, 330, 40); person.rotation.y = Math.PI;
+  } else if (kind === "bed") {
+    place.add(box(480, 30, 420, wood, 100, -15, 0));
+    place.add(box(1800, 520, 1600, M(0xd9d4cb, { roughness: 1 }), 1250, -260, 300));
+    place.add(box(550, 130, 380, M(0xf2efe8, { roughness: 1 }), 700, 65, -120));
+    const bk = box(180, 18, 240, M(0x6a3d2e), 640, 210, 120); bk.rotation.z = -0.5; place.add(bk);
+    place.add(box(100, 60, 60, M(0x2f3236), 250, 30, 140));
+    person.position.set(780, 190, 100); person.rotation.y = Math.PI;
+  } else {
+    place.add(cyl(260, 30, wood, "y", 120, -15, 0, 64));
+    place.add(box(900, 420, 900, M(0x6d7b85, { roughness: 1 }), 900, -10, 0));
+    const pot = cyl(70, 120, M(0xb5651d), "y", -120, 60, 160); place.add(pot);
+    for (let i = 0; i < 9; i++) { const lf = mesh(new THREE.SphereGeometry(45, 16, 12), M(0x3f7d4e, { roughness: 0.8 }), -120 + Math.cos(i) * 55, 170 + (i % 3) * 40, 160 + Math.sin(i * 2) * 55); lf.scale.y = 0.55; place.add(lf); }
+    const bk = box(160, 18, 220, M(0x2d5b8a), 640, 230, 30); bk.rotation.z = -0.45; place.add(bk);
+    person.position.set(860, 420, 30); person.rotation.y = Math.PI;
+  }
+  place.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+}
+const floor = mesh(new THREE.PlaneGeometry(8000, 8000), floorMat, 0, -760, 0); floor.rotation.x = -Math.PI / 2; room.add(floor);
+
+// ---------------------------------------------------------------- pose animation
+const D = Math.PI / 180;
+let cur = { s: 5, e: 150, w: 20, yaw: 0, light: 0 }, target = { ...cur }, curMode = null, curPlace = "desk", t0 = performance.now();
+// in bed or on the sofa the book is held up in front of you, not lying on the table
+const PLACE_POSES = { read: { bed: { s: 30, e: 45, w: 40, yaw: 0 }, living: { s: 30, e: 45, w: 35, yaw: 0 } } };
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function applyPose(p, tsec) {
+  let yawExtra = 0, wExtra = 0;
+  if (curMode && curMode.id === "phone" && !reduceMotion) yawExtra = Math.sin(tsec * 0.9) * 10;
+  if (curMode && curMode.id === "look" && !reduceMotion) wExtra = Math.sin(tsec * 1.6) * 3;
+  if (curMode && curMode.id === "off" && !reduceMotion) wExtra = Math.sin(tsec * 0.8) * 1.5;
+  yaw.rotation.y = -(p.yaw + yawExtra) * D;
+  shoulder.rotation.z = -p.s * D;
+  elbow.rotation.z = -p.e * D;
+  wrist.rotation.z = -(p.w + wExtra) * D;
+  spot.intensity = p.light * (T.dark.checked ? 2.2 : 0.9);
+  ledMat.emissiveIntensity = p.light * 1.6;
+}
+function setMode(id) {
+  curMode = MODES.find(m => m.id === id);
+  const ov = (PLACE_POSES[id] || {})[curPlace] || {};
+  target = Object.assign({ s: curMode.s, e: curMode.e, w: curMode.w, yaw: curMode.yaw, light: curMode.light }, ov);
+  ringMat.emissive.setHex(curMode.ring);
+  ringMat.color.setHex(curMode.ring === 0 ? 0x222222 : curMode.ring);
+  spot.color.setHex(id === "wind" ? 0xff9a4a : id === "sun" ? 0xffcf8a : 0xffd9a8);
+  document.querySelectorAll("#modes button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === id)));
+  $("modeDesc").textContent = curMode.desc;
+  if (reduceMotion) cur = { ...target };
+}
+
+// ---------------------------------------------------------------- UI
+const T = { pip: $("tPip"), fov: $("tFov"), xray: $("tXray"), dark: $("tDark"), person: $("tPerson"), spin: $("tSpin") };
+MODES.forEach(m => {
+  const b = document.createElement("button"); b.type = "button"; b.dataset.mode = m.id; b.textContent = m.name;
+  b.setAttribute("aria-pressed", "false"); b.addEventListener("click", () => setMode(m.id)); $("modes").appendChild(b);
+});
+function setPlace(kind) {
+  document.querySelectorAll("#places button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.place === kind)));
+  curPlace = kind;
+  buildPlace(kind);
+  if (curMode) setMode(curMode.id);
+  const f = FEATURES[kind];
+  $("featTitle").textContent = f.title;
+  const ul = $("feats"); ul.textContent = "";
+  f.list.forEach(([n, d, t]) => {
+    const li = document.createElement("li");
+    const b = document.createElement("b"); b.textContent = n; li.append(b);
+    const tg = document.createElement("span"); tg.className = "tag"; tg.textContent = t; li.append(tg);
+    li.append(document.createElement("br"));
+    const s = document.createElement("span"); s.textContent = d; li.append(s);
+    ul.append(li);
+  });
+}
+document.querySelectorAll("#places button").forEach(b => b.addEventListener("click", () => setPlace(b.dataset.place)));
+
+function renderBom() {
+  const tb = $("bom"); tb.textContent = "";
+  BOM.forEach(([label, lo, hi, src, part, tiers]) => {
+    const tr = document.createElement("tr");
+    const shown = tiers === "ABC" ? "" : (tiers === "A" ? " (A)" : tiers === "BC" ? " (B, C)" : ` (${tiers})`);
+    const td1 = document.createElement("td"); td1.textContent = label + shown;
+    const td2 = document.createElement("td"); td2.className = "p"; td2.textContent = lo === hi ? `$${lo}` : `$${lo}–${hi}`;
+    const td3 = document.createElement("td"); td3.className = "s"; td3.textContent = src;
+    tr.append(td1, td2, td3); tr.style.cursor = "pointer";
+    tr.addEventListener("click", () => select(part));
+    tb.append(tr);
+  });
+  const tiersEl = $("tiers"); tiersEl.textContent = "";
+  TIERS.forEach(t => {
+    let lo = 0, hi = 0;
+    BOM.forEach(r => { if (r[5].includes(t.id)) { lo += r[1]; hi += r[2]; } });
+    const d = document.createElement("div"); d.className = "tier" + (t.id === "C" ? " on" : "");
+    const n = document.createElement("b"); n.textContent = `${t.id}. ${t.name}`;
+    const p = document.createElement("span"); p.className = "p"; p.textContent = `$${lo}–${hi}`;
+    const s = document.createElement("small"); s.textContent = t.note;
+    d.append(n, p, s); tiersEl.append(d);
+  });
+}
+const glow = [];
+function select(id) {
+  glow.forEach(m => { m.material.emissive && m.material !== ledMat && m.material !== ringMat && m.material !== camLedMat && m.material.emissive.setHex(0); });
+  glow.length = 0;
+  const p = PARTS[id];
+  const box_ = $("info"); box_.textContent = "";
+  const h2 = document.createElement("h2"); h2.textContent = "Selected part";
+  const h3 = document.createElement("h3"); h3.textContent = p ? p.name : "Click a part";
+  box_.append(h2, h3);
+  if (!p) return;
+  const sz = document.createElement("p"); sz.className = "note"; sz.textContent = p.size;
+  const tx = document.createElement("p"); tx.textContent = p.info;
+  box_.append(sz, tx);
+  if (id === "pi" || id === "power" || id === "driver") { T.xray.checked = true; applyToggles(); }
+  scene.traverse(o => {
+    if (o.isMesh && o.userData.part === id && o.material.emissive && o.material !== ledMat && o.material !== ringMat && o.material !== camLedMat) {
+      if (!o.userData.ownMat) { o.material = o.material.clone(); o.userData.ownMat = true; }
+      o.material.emissive.setHex(0x2c6e8f); glow.push(o);
+    }
+  });
+}
+function cssColor(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim() || "#e4e1d9"; }
+function applyToggles() {
+  inside.visible = T.xray.checked;
+  baseShellMat.opacity = T.xray.checked ? 0.25 : 1;
+  baseShellMat.transparent = true; baseShellMat.depthWrite = !T.xray.checked;
+  fovCone.visible = T.fov.checked;
+  person.visible = T.person.checked;
+  const dark = T.dark.checked;
+  scene.background = new THREE.Color(dark ? 0x17140f : cssColor("--stage"));
+  hemi.intensity = dark ? 0.16 : 0.7; sun.intensity = dark ? 0.05 : 0.75;
+  $("pipLabel").hidden = !T.pip.checked;
+  camLedMat.emissiveIntensity = (curMode && curMode.id !== "off") ? 2 : 0;
+}
+Object.values(T).forEach(el => el.addEventListener("change", applyToggles));
+new MutationObserver(applyToggles).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+// picking
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(); let down = null;
+canvas.addEventListener("pointerdown", e => { down = [e.clientX, e.clientY]; });
+canvas.addEventListener("pointerup", e => {
+  if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 5) return;
+  const r = canvas.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, p = pipRect();
+  if (T.pip.checked && x > p.x && y < p.h + 12) return;
+  ndc.set(x / r.width * 2 - 1, -(y / r.height) * 2 + 1); ray.setFromCamera(ndc, camera);
+  const hit = ray.intersectObject(lamp, true).find(h => h.object.userData.part && h.object.visible);
+  select(hit ? hit.object.userData.part : null);
+});
+
+// ---------------------------------------------------------------- render loop
+function pipRect() { const r = canvas.getBoundingClientRect(); const w = Math.round(Math.min(Math.max(r.width * 0.3, 140), 280)); const h = Math.round(w * 0.75); return { x: r.width - w - 12, y: r.height - h - 12, w, h }; }
+function resize() { const r = stageEl.getBoundingClientRect(); renderer.setSize(r.width, r.height, false); camera.aspect = r.width / r.height; camera.updateProjectionMatrix(); }
+new ResizeObserver(resize).observe(stageEl);
+const v1 = new THREE.Vector3(), v2 = new THREE.Vector3();
+function frame(now) {
+  const k = reduceMotion ? 1 : 0.05;
+  ["s", "e", "w", "yaw", "light"].forEach(key => { cur[key] += (target[key] - cur[key]) * k; });
+  applyPose(cur, (now - t0) / 1000);
+  if (T.spin.checked && !reduceMotion) { const off = camera.position.clone().sub(controls.target); off.applyAxisAngle(new THREE.Vector3(0, 1, 0), 0.003); camera.position.copy(controls.target).add(off); }
+  controls.update();
+  const r = canvas.getBoundingClientRect();
+  renderer.setScissorTest(false); renderer.setViewport(0, 0, r.width, r.height);
+  renderer.render(scene, camera);
+  if (T.pip.checked) {
+    scene.updateMatrixWorld();
+    camMount.localToWorld(v1.set(0, 12, 0)); camMount.localToWorld(v2.set(0, 400, 0));
+    const upW = new THREE.Vector3(0, 0, 1).applyQuaternion(camMount.getWorldQuaternion(new THREE.Quaternion()));
+    pipCam.position.copy(v1); pipCam.up.copy(upW); pipCam.lookAt(v2); pipCam.updateProjectionMatrix();
+    const p = pipRect(), cv = fovCone.visible; fovCone.visible = false;
+    renderer.setScissorTest(true);
+    renderer.setScissor(p.x - 3, p.y - 3, p.w + 6, p.h + 6); renderer.setViewport(p.x - 3, p.y - 3, p.w + 6, p.h + 6);
+    renderer.setClearColor(0xffffff, 1); renderer.clear();
+    renderer.setScissor(p.x, p.y, p.w, p.h); renderer.setViewport(p.x, p.y, p.w, p.h);
+    renderer.render(scene, pipCam);
+    renderer.setScissorTest(false); fovCone.visible = cv;
+  }
+  requestAnimationFrame(frame);
+}
+setPlace("desk"); renderBom(); setMode("focus"); applyToggles(); resize();
+requestAnimationFrame(frame);
+})();
+</script>
+
+</body>
+</html>

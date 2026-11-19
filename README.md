@@ -81,6 +81,10 @@ You'll see Claude describe each photo and choose a move. Open the `missions/<dat
 
 ---
 
+## Also in this repo: the Focus Lamp
+
+A robot desk/bedside lamp with fully local AI (no data leaves home). Concept design, 3D model, features and costs: [`lamp/README.md`](lamp/README.md).
+
 ## Project layout
 
 ```
