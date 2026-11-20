@@ -34,11 +34,11 @@ Type something like *"partner's asleep, I want to read 20 more minutes"*, and wa
 
 | # | Part | What to search for | ~Price |
 |---|---|---|---|
-| 1 | ESP32 dev board with **pre-soldered** pins (a 2-pack gives you a spare) | "ESP32 DevKitC 38 pin pre-soldered 2 pack" | $12–18 |
+| 1 | ESP32 dev board, **30-pin**, USB-C, pins pre-soldered (a 3-pack gives you spares) | "AITRIP 3PCS 30Pins USB-C ESP-WROOM-32" | $15–20 |
 | 2 | Pan-tilt mount with 2 micro servos | "pan tilt kit SG90 servos" (or the assembled Adafruit Mini Pan-Tilt Kit, ~$19) | $8–19 |
 | 3 | RGBW LED strip, 5 V, 60 LEDs/m, with JST connectors | "SK6812 RGBW 5V 60 LED JST" | $12–20 |
 | 4 | Breadboard + jumper wires kit | "830 breadboard jumper wires kit" | $8–12 |
-| 5 | Breadboard power module, plus a 5 V 2 A phone charger and USB cable you already own | "MB102 breadboard power supply module" | $6–8 |
+| 5 | USB-C to 2-pin screw-terminal adapter, plus a 5 V 2–3 A phone charger you already own | "USB C female to 2 pin screw terminal adapter" | $7–10 |
 | 6 | Capacitor, 470–1000 µF, 10 V or more (keeps the servos from resetting the board) | "electrolytic capacitor assortment" | $5–8 |
 | 7 | Ping-pong balls | any | $3 |
 | | **Total** | | **~$45–65** |
@@ -47,6 +47,10 @@ Type something like *"partner's asleep, I want to read 20 more minutes"*, and wa
 
 **Tools:** scissors for the LED strip, a craft knife for the ping-pong ball, a hot glue gun or tape, and a multimeter (about $15, optional but handy).
 
+**Why 30-pin?** It fits a breadboard with a free row of holes on each side. Wider 38-pin boards cover every hole. All the pins the lamp uses (4, 16, 18, 19, 34) exist on both.
+
+**Why not a breadboard power module?** The common MB102 module is rated around 700 mA, which two servos plus the LEDs can exceed. The USB-C adapter passes the charger's full current.
+
 **No soldering.** Cut the LED strip so you keep the end **with the connector**, about 8 LEDs, and push its wires into the breadboard.
 
 ---
@@ -54,7 +58,7 @@ Type something like *"partner's asleep, I want to read 20 more minutes"*, and wa
 ## Wiring
 
 ```
-Phone charger ─USB─► MB102 power module (set its jumpers to 5V) on the breadboard rails
+Phone charger ─USB-C─► screw-terminal adapter ─two jumper wires─► breadboard rails
                          + rail (5V)          − rail (GND)
 ESP32 5V/VIN  ◄───────── + rail      ESP32 GND ◄──── − rail
 Servo red (both)  ◄───── + rail      Servo brown (both) ◄── − rail
