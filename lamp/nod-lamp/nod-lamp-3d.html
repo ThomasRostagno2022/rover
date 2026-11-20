@@ -1,0 +1,351 @@
+<title>Nod Lamp</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a large 3D stage with a control column beside it, then specs and parts below. */
+:root{
+  --bg:#f4f2ef; --surface:#ffffff; --fg:#191715; --muted:#625c55; --faint:#8d867e; --line:#e2ddd6;
+  --accent:#b8611f; --chip:#efe9e2; --stage:#1b1714;
+  --display:"Space Grotesk",ui-sans-serif,system-ui,sans-serif;
+  --body:"Inter",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#131110; --surface:#1c1917; --fg:#efeae4; --muted:#ada59c; --faint:#80796f; --line:#2e2a26;
+  --accent:#e8904e; --chip:#26221f; --stage:#0f0d0c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#131110; --surface:#1c1917; --fg:#efeae4; --muted:#ada59c; --faint:#80796f; --line:#2e2a26;
+  --accent:#e8904e; --chip:#26221f; --stage:#0f0d0c; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding-block:24px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:36px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance}
+h1{font-size:clamp(28px,4.5vw,40px);letter-spacing:-.02em}
+h2{font-size:22px}
+h3{font-size:12px;font-family:var(--mono);font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+p{margin:0}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.lede{color:var(--muted);max-width:66ch;margin-top:8px}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;align-items:start}
+.view{position:relative;background:var(--stage);border-radius:16px;overflow:hidden;aspect-ratio:16/11;max-width:100%}
+.view canvas{display:block;width:100%;height:100%;touch-action:none}
+.hud{position:absolute;left:14px;top:12px;right:14px;display:flex;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:12px;color:#d8cfc4;pointer-events:none}
+.hud .motor{color:#f2b27c}
+.hint{position:absolute;left:14px;bottom:12px;font-family:var(--mono);font-size:11.5px;color:#9b9187;pointer-events:none}
+.side{display:grid;gap:18px;min-width:0}
+.group{display:grid;gap:8px}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;cursor:pointer}
+.chip{background:var(--chip);color:var(--fg);border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:14px}
+.chip:hover{border-color:var(--accent)}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.chip:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mdesc{font-size:14px;color:var(--muted);min-height:66px}
+.row{display:flex;align-items:center;gap:10px;font-size:14px}
+input[type=range]{flex:1;accent-color:var(--accent)}
+.tilt{font-family:var(--mono);font-size:12.5px;color:var(--muted);min-width:44px;text-align:right;font-variant-numeric:tabular-nums}
+.info{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:6px;min-height:118px}
+.info b{font-family:var(--display);font-size:15px}
+.info .meta{font-family:var(--mono);font-size:12px;color:var(--accent)}
+.info p{font-size:13.5px;color:var(--muted)}
+.specs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
+.spec{border-top:2px solid var(--line);padding-top:10px;display:grid;gap:2px}
+.spec b{font-family:var(--display);font-size:20px;font-variant-numeric:tabular-nums}
+.spec span{font-size:13px;color:var(--muted)}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);font-weight:500}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tfoot td{font-weight:600;border-bottom:none}
+.note{font-size:13px;color:var(--faint)}
+@media (max-width:900px){.main{grid-template-columns:minmax(0,1fr)}.specs{grid-template-columns:repeat(2,minmax(0,1fr))}.view{aspect-ratio:4/3.4}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Concept · battery · about $80–115</div>
+    <h1>Nod Lamp</h1>
+    <p class="lede">A 24 cm bedside lamp with a wooden base, an aluminium neck and a head that tilts on a silent motor. It points down at your book for reading, or up at the wall for a soft sunrise. It runs a week on a hidden battery and needs nothing else to work.</p>
+  </header>
+
+  <div class="main">
+    <div class="view" id="view">
+      <div class="hud"><span id="hudMode">Reading</span><span class="motor" id="hudMotor"></span></div>
+      <div class="hint">Drag to orbit · scroll or pinch to zoom · click a part</div>
+    </div>
+    <div class="side">
+      <div class="group">
+        <h3>Modes</h3>
+        <div class="btns" id="modes">
+          <button class="chip" data-mode="read">Reading</button>
+          <button class="chip" data-mode="sunrise">Sunrise</button>
+          <button class="chip" data-mode="night">Night walk</button>
+          <button class="chip" data-mode="wind">Wind-down</button>
+          <button class="chip" data-mode="off">Off</button>
+        </div>
+        <p class="mdesc" id="mdesc"></p>
+      </div>
+      <div class="group">
+        <h3>Head tilt (motor)</h3>
+        <div class="row"><input type="range" id="tilt" min="-60" max="125" step="1" aria-label="Head tilt"><span class="tilt" id="tiltVal"></span></div>
+      </div>
+      <div class="group">
+        <h3>View</h3>
+        <div class="btns">
+          <button class="chip" id="xray" aria-pressed="false">See inside</button>
+          <button class="chip" id="close" aria-pressed="false">Close-up</button>
+        </div>
+      </div>
+      <div class="info" id="info"><b>Click any part</b><p>Tap the base, neck, head or button to see what it is, its size and what it costs. Turn on "See inside" to reveal the battery, board and motor.</p></div>
+    </div>
+  </div>
+
+  <section style="display:grid;gap:16px">
+    <h2>Size and battery</h2>
+    <div class="specs">
+      <div class="spec"><b>24 cm</b><span>Height with the head up. 10 × 10 cm footprint.</span></div>
+      <div class="spec"><b>~0.5 kg</b><span>Mostly the battery and the wood. Stays put when you tap it.</span></div>
+      <div class="spec"><b>5–7 days</b><span>Per charge with an hour or two of reading a day. USB-C at the back.</span></div>
+      <div class="spec"><b>~2 s</b><span>To tilt from book to wall. Slow on purpose, so you barely hear it.</span></div>
+    </div>
+    <p class="note">Weight and battery life are estimates. We'd measure them once it's built.</p>
+  </section>
+
+  <section style="display:grid;gap:14px">
+    <h2>What's inside</h2>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Part</th><th>Where</th><th>Job</th><th>~Price</th></tr></thead>
+        <tbody>
+          <tr><td>ESP32-S3 board</td><td>Base</td><td>Runs everything: modes, schedule, motor, Wi-Fi for Claude</td><td class="num">$10–15</td></tr>
+          <tr><td>10,000 mAh power bank with "always-on" mode</td><td>Base</td><td>The battery. Charges with any USB-C cable.</td><td class="num">$20–30</td></tr>
+          <tr><td>Tunable-white LEDs, 5 V, and a frosted diffuser</td><td>Head</td><td>Warm 2700 K to cool 6500 K, dimmable without flicker</td><td class="num">$10–15</td></tr>
+          <tr><td>Micro stepper motor and silent driver</td><td>Top of neck</td><td>Tilts the head slowly and quietly</td><td class="num">$15–20</td></tr>
+          <tr><td>Motion sensor and light sensor</td><td>Base front, head rim</td><td>Night walk trigger, steady reading brightness</td><td class="num">$5–10</td></tr>
+          <tr><td>Walnut block, aluminium tube, brass touch button</td><td>Body</td><td>The parts you cut, drill and assemble</td><td class="num">$15–25</td></tr>
+        </tbody>
+        <tfoot><tr><td>Total</td><td></td><td></td><td class="num">$80–115</td></tr></tfoot>
+      </table>
+    </div>
+    <p class="note">Prices are estimates, not checked against live stock. No 3D printing. The motor driver may need one small solder joint; we'd pick a screw-terminal version if we can find one.</p>
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+  const view = document.getElementById("view");
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  view.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x1b1714);
+  const camera = new THREE.PerspectiveCamera(40, 1.45, 1, 2000);
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true; controls.minDistance = 25; controls.maxDistance = 260;
+  controls.maxPolarAngle = Math.PI * 0.49;
+  const VIEWS = {
+    room: { pos: [62, 98, 82], tgt: [-2, 64, -2] },
+    close: { pos: [32, 86, 44], tgt: [-6, 68, -6] }
+  };
+  function setView(v) { camera.position.set(...VIEWS[v].pos); controls.target.set(...VIEWS[v].tgt); controls.update(); }
+  setView("room");
+
+  const hemi = new THREE.HemisphereLight(0x8090b0, 0x2a2018, 0.18); scene.add(hemi);
+  const fill = new THREE.PointLight(0xffd2a0, 0, 0); fill.position.set(-8, 110, -10); scene.add(fill);
+
+  const M = (c, o = {}) => new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: .7, metalness: 0 }, o));
+  const mats = {
+    wall: M(0xd8d1c6, { roughness: .95 }), floor: M(0x7a5c45, { roughness: .8 }),
+    oak: M(0xb08a62, { roughness: .6 }), oakDark: M(0x8f6c4a, { roughness: .65 }),
+    sheet: M(0xeeebe6, { roughness: .9 }), duvet: M(0x6f7f90, { roughness: .95 }), frame: M(0x3d342d),
+    walnut: M(0x5d3f28, { roughness: .55 }), alu: M(0xc4c7cc, { metalness: .55, roughness: .35 }),
+    head: M(0x2c2b2a, { roughness: .45, metalness: .3 }), brass: M(0xc9a24e, { metalness: .7, roughness: .3 }),
+    diffuser: new THREE.MeshStandardMaterial({ color: 0xf4efe6, emissive: 0x000000, roughness: .3 }),
+    black: M(0x151515, { roughness: .5 }), pcb: M(0x1d2a22, { roughness: .6 }), pcb2: M(0x4b2a7a), bank: M(0x3a3d42, { roughness: .5 }),
+    pir: M(0xf2f2ee, { roughness: .4 }), paper: M(0xf6f1e4, { roughness: .95 }), cover: M(0x8a2f2a), glass: M(0xe0e6ea, { roughness: .1, transparent: true, opacity: .5 })
+  };
+  const parts = [];
+  function mesh(geo, mat, parent, pos, part, opts = {}) {
+    const m = new THREE.Mesh(geo, mat); if (pos) m.position.set(...pos);
+    m.castShadow = opts.cast !== false; m.receiveShadow = true;
+    if (part) { m.userData.part = part; parts.push(m); }
+    parent.add(m); return m;
+  }
+  const box = (x, y, z) => new THREE.BoxGeometry(x, y, z);
+  const cyl = (r1, r2, h, s = 40) => new THREE.CylinderGeometry(r1, r2, h, s);
+
+  // ---------- room (cm) ----------
+  mesh(new THREE.PlaneGeometry(400, 400), mats.floor, scene, [0, 0, 0], null, { cast: false }).rotation.x = -Math.PI / 2;
+  mesh(new THREE.PlaneGeometry(400, 220), mats.wall, scene, [0, 110, -25], null, { cast: false });
+  const side = mesh(new THREE.PlaneGeometry(300, 220), mats.wall, scene, [-60, 110, 100], null, { cast: false }); side.rotation.y = Math.PI / 2;
+  // nightstand
+  mesh(box(45, 52, 40), mats.oakDark, scene, [0, 26, -3]);
+  mesh(box(43, 18, 1), mats.oak, scene, [0, 40, 17.1]);
+  mesh(cyl(.6, .6, 6, 16), mats.brass, scene, [0, 40, 18.2]).rotation.z = Math.PI / 2;
+  mesh(box(47, 2.5, 42), mats.oak, scene, [0, 54.25 + 2, -3]);
+  const TOP = 57.5;
+  // bed
+  mesh(box(160, 30, 205), mats.frame, scene, [108, 15, 80]);
+  mesh(box(155, 22, 200), mats.sheet, scene, [108, 41, 80]);
+  mesh(box(157, 6, 140), mats.duvet, scene, [108, 54, 112]);
+  mesh(box(150, 110, 6), mats.frame, scene, [108, 55, -20]);
+  const pillow = mesh(box(60, 12, 38), mats.sheet, scene, [65, 58, 6]); pillow.scale.set(1, 1, 1);
+  // book (open) + glass
+  const book = new THREE.Group(); book.position.set(9, TOP, 8); book.rotation.y = -0.5; scene.add(book);
+  mesh(box(30, .4, 21), mats.cover, book, [0, .2, 0]);
+  const pg1 = mesh(box(14.4, .9, 20), mats.paper, book, [-7.4, .8, 0]); pg1.rotation.z = .05;
+  const pg2 = mesh(box(14.4, .9, 20), mats.paper, book, [7.4, .8, 0]); pg2.rotation.z = -.05;
+  mesh(cyl(3.2, 2.8, 10, 32), mats.glass, scene, [-14, TOP + 5, 10]);
+
+  // ---------- lamp ----------
+  const lamp = new THREE.Group();
+  lamp.position.set(-8, TOP, -8);
+  lamp.rotation.y = Math.atan2(17, 16);
+  scene.add(lamp);
+  const P = {
+    base: { name: "Walnut base", meta: "10 × 10 × 4.5 cm · wood block, hollowed", text: "You cut and route it with your power tools. Holds the battery and electronics, and its weight keeps the lamp steady." },
+    button: { name: "Brass touch button", meta: "Ø 2.2 cm · ~$3", text: "Tap: reading on or off. Hold: skip tomorrow's sunrise. Double tap: wall light." },
+    pir: { name: "Motion sensor (PIR)", meta: "Ø 1 cm lens · ~$3", text: "Sees you getting up at night and turns on the dim amber glow. Uses almost no battery." },
+    usb: { name: "USB-C charging port", meta: "Back of the base", text: "Charges the hidden power bank about once a week." },
+    neck: { name: "Aluminium neck", meta: "Ø 1.2 × 15 cm tube · ~$5", text: "Store-bought tube. The motor and LED wires run inside it." },
+    hub: { name: "Motor hub", meta: "3.2 cm cube · micro stepper inside", text: "A tiny stepper motor with a silent driver tilts the head. It moves a few times a day, about 2 seconds per move." },
+    head: { name: "Lamp head", meta: "Ø 6 × 4.5 cm aluminium cup", text: "Holds the tunable-white LEDs. Tilts from 60° down onto your book to 125° up and back at the wall." },
+    diffuser: { name: "Frosted diffuser", meta: "Ø 5 cm", text: "Spreads the LEDs into one soft disc of light with no harsh dots." },
+    lsensor: { name: "Light sensor", meta: "4 mm · ~$3", text: "Measures the light coming back from your page and keeps it steady as the room changes." },
+    bank: { name: "Power bank 10,000 mAh", meta: "9 × 6 × 2.2 cm · ~$20–30", text: "The battery. A store-bought power bank with an always-on mode, so it doesn't switch itself off at low power." },
+    esp: { name: "ESP32-S3 board", meta: "5.2 × 2.8 cm · ~$10–15", text: "The brain. Runs the modes, the schedule, the motor and Wi-Fi. Sleeps between tasks to save battery." },
+    driver: { name: "Silent motor driver", meta: "2 × 1.5 cm · TMC2209 type", text: "Drives the stepper in its quiet mode." },
+    motor: { name: "Micro stepper motor", meta: "Ø 2 cm · ~$8", text: "Turns the head through a small gear so it holds position with the power off." }
+  };
+  const baseMats = [mats.walnut];
+  const base = mesh(box(10, 4.5, 10), mats.walnut, lamp, [0, 2.25, 0], P.base);
+  mesh(cyl(1.1, 1.1, .3), mats.brass, lamp, [2.2, 4.62, 2.2], P.button);
+  const pir = mesh(new THREE.SphereGeometry(.55, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), mats.pir, lamp, [-2.6, 2.4, 5.0], P.pir); pir.rotation.x = Math.PI / 2;
+  mesh(box(1, .35, .2), mats.black, lamp, [0, 1.2, -5.05], P.usb);
+  // internals
+  const inside = new THREE.Group(); lamp.add(inside); inside.visible = false;
+  mesh(box(9, 2.2, 6), mats.bank, inside, [0, 1.45, 1.3], P.bank);
+  mesh(box(5.2, .16, 2.8), mats.pcb, inside, [-1.2, 3.3, -2.9], P.esp);
+  mesh(box(1.8, .5, 1.2), mats.alu, inside, [-2.6, 3.6, -2.9]);
+  mesh(box(2, .16, 1.5), mats.pcb2, inside, [3, 3.3, -2.9], P.driver);
+  // neck + hub
+  const NECK_Z = -3.4, PIV_Y = 20.6;
+  mesh(cyl(.6, .6, 14.6, 24), mats.alu, lamp, [0, 4.5 + 7.3, NECK_Z], P.neck);
+  mesh(cyl(1.2, 1.4, .4, 32), mats.alu, lamp, [0, 4.7, NECK_Z]);
+  const hub = mesh(box(3.2, 3, 3.2), mats.alu, lamp, [0, PIV_Y, NECK_Z], P.hub);
+  const motor = mesh(cyl(1, 1, 1.8, 24), mats.black, lamp, [0, PIV_Y, NECK_Z], P.motor); motor.rotation.z = Math.PI / 2; motor.visible = false;
+  // head on pivot
+  const pivot = new THREE.Group(); pivot.position.set(0, PIV_Y, NECK_Z); lamp.add(pivot);
+  const axle = mesh(cyl(.35, .35, 4, 16), mats.alu, pivot, [0, 0, 0]); axle.rotation.z = Math.PI / 2;
+  mesh(cyl(.7, .7, 1.4, 20), mats.alu, pivot, [0, 0, 2.2]).rotation.x = Math.PI / 2;
+  const headBody = mesh(cyl(3, 2.7, 4.5, 48), mats.head, pivot, [0, 0, 5.1], P.head); headBody.rotation.x = Math.PI / 2;
+  const ring = mesh(new THREE.TorusGeometry(2.85, .15, 12, 48), mats.alu, pivot, [0, 0, 7.35]);
+  const diff = mesh(new THREE.CircleGeometry(2.55, 48), mats.diffuser, pivot, [0, 0, 7.3], P.diffuser, { cast: false });
+  mesh(box(.5, .5, .15), mats.black, pivot, [0, -2.75, 7.38], P.lsensor);
+  const spot = new THREE.SpotLight(0xffffff, 0, 0, Math.PI / 5.2, .55, 1);
+  spot.position.set(0, 0, 7.0); spot.castShadow = true; spot.shadow.mapSize.set(1024, 1024); spot.shadow.camera.near = 1; spot.shadow.bias = -0.0008;
+  pivot.add(spot);
+  const tgt = new THREE.Object3D(); tgt.position.set(0, 0, 60); pivot.add(tgt); spot.target = tgt;
+  const glowL = new THREE.PointLight(0xffffff, 0, 30, 2); glowL.position.set(0, 0, 9); pivot.add(glowL);
+
+  // ---------- modes ----------
+  const K = (r, g, b) => new THREE.Color(r / 255, g / 255, b / 255);
+  const MODES = {
+    read: { label: "Reading", tilt: -38, color: K(255, 214, 170), int: 2.2, desc: "Head tilts down onto the book. Warm-neutral 3500 K. The light sensor holds the page at a steady brightness. Your partner's side stays dark." },
+    sunrise: { label: "Sunrise", tilt: 112, anim: "sunrise", desc: "Head turns up and back to the wall. Over 30 minutes the light goes from dim red to bright warm white, bounced off the wall so it fills the room softly. Shown here in 12 seconds." },
+    night: { label: "Night walk", tilt: -50, color: K(255, 120, 30), int: .25, desc: "Motion at night? A very dim amber glow, just enough to find the door. Turns off two minutes after you're back in bed." },
+    wind: { label: "Wind-down", tilt: 100, color: K(255, 140, 55), int: 1.0, desc: "At your usual bedtime the head turns to the wall and the light goes amber, then fades out over 20 minutes." },
+    off: { label: "Off", tilt: -30, color: K(0, 0, 0), int: 0, desc: "Resting. The board sleeps and wakes for the motion sensor, the button or the next scheduled event." }
+  };
+  const state = { mode: "read", tilt: -38, target: -38, t0: performance.now(), manual: false };
+  const tiltIn = document.getElementById("tilt"), tiltVal = document.getElementById("tiltVal");
+  const hudMode = document.getElementById("hudMode"), hudMotor = document.getElementById("hudMotor"), mdesc = document.getElementById("mdesc");
+  function setMode(m) {
+    state.mode = m; state.target = MODES[m].tilt; state.t0 = performance.now(); state.manual = false;
+    document.querySelectorAll("#modes .chip").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === m ? "true" : "false"));
+    hudMode.textContent = MODES[m].label; mdesc.textContent = MODES[m].desc;
+  }
+  document.querySelectorAll("#modes .chip").forEach(b => b.addEventListener("click", () => setMode(b.dataset.mode)));
+  tiltIn.addEventListener("input", () => { state.target = +tiltIn.value; state.manual = true; });
+
+  const xray = document.getElementById("xray");
+  xray.addEventListener("click", () => {
+    const on = xray.getAttribute("aria-pressed") !== "true"; xray.setAttribute("aria-pressed", on);
+    inside.visible = on; motor.visible = on;
+    [mats.walnut, mats.alu].forEach(m => { m.transparent = on; m.opacity = on ? .22 : 1; m.depthWrite = !on; m.needsUpdate = true; });
+    if (on && !closeOn) toggleClose();
+  });
+  let closeOn = false; const closeBtn = document.getElementById("close");
+  function toggleClose() { closeOn = !closeOn; closeBtn.setAttribute("aria-pressed", closeOn); setView(closeOn ? "close" : "room"); }
+  closeBtn.addEventListener("click", toggleClose);
+
+  // picking
+  const ray = new THREE.Raycaster(), mouse = new THREE.Vector2(), info = document.getElementById("info");
+  let downAt = null;
+  renderer.domElement.addEventListener("pointerdown", e => { downAt = [e.clientX, e.clientY]; });
+  renderer.domElement.addEventListener("pointerup", e => {
+    if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 5) return;
+    const r = renderer.domElement.getBoundingClientRect();
+    mouse.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1);
+    ray.setFromCamera(mouse, camera);
+    const hit = ray.intersectObjects(parts.filter(p => p.visible && (p.parent.visible)), false)[0];
+    if (!hit) return;
+    const p = hit.object.userData.part; info.replaceChildren();
+    const b = document.createElement("b"); b.textContent = p.name;
+    const m = document.createElement("span"); m.className = "meta"; m.textContent = p.meta;
+    const t = document.createElement("p"); t.textContent = p.text;
+    info.append(b, m, t);
+  });
+
+  function resize() {
+    const w = view.clientWidth, h = view.clientHeight;
+    renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(resize).observe(view); resize();
+
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(.1, (now - last) / 1000); last = now;
+    // motor: max ~80°/s with easing
+    const diffT = state.target - state.tilt;
+    const step = Math.sign(diffT) * Math.min(Math.abs(diffT), (reduce ? 999 : 80) * dt * Math.min(1, Math.abs(diffT) / 25 + .25));
+    state.tilt += step;
+    const moving = Math.abs(diffT) > .5;
+    hudMotor.textContent = moving ? "motor moving · quiet" : "";
+    pivot.rotation.x = -state.tilt * Math.PI / 180;
+    if (!state.manual) tiltIn.value = Math.round(state.tilt);
+    tiltVal.textContent = Math.round(state.tilt) + "°";
+
+    const md = MODES[state.mode];
+    let col, inten;
+    if (md.anim === "sunrise") {
+      const p = Math.min(1, ((now - state.t0) / 12000) % 1.15);
+      const stops = [[0, K(90, 10, 2)], [.35, K(220, 70, 15)], [.7, K(255, 150, 60)], [1, K(255, 222, 182)]];
+      let i = 0; while (i < stops.length - 2 && p > stops[i + 1][0]) i++;
+      const k = (p - stops[i][0]) / (stops[i + 1][0] - stops[i][0]);
+      col = stops[i][1].clone().lerp(stops[i + 1][1], Math.max(0, Math.min(1, k)));
+      inten = .05 + Math.pow(p, 1.6) * 3.0;
+    } else { col = md.color; inten = md.int; }
+    spot.color.copy(col); spot.intensity = inten;
+    glowL.color.copy(col); glowL.intensity = inten * .5;
+    mats.diffuser.emissive.copy(col).multiplyScalar(Math.min(1, inten * .9 + (inten > 0 ? .25 : 0)));
+    // fake bounce: wall-facing tilt fills the room
+    const up = Math.max(0, Math.min(1, (state.tilt - 40) / 60));
+    fill.color.copy(col); fill.intensity = inten * (.08 + up * .35);
+    hemi.intensity = .14 + inten * .03;
+
+    controls.update();
+    renderer.render(scene, camera);
+    requestAnimationFrame(frame);
+  }
+  setMode("read");
+  requestAnimationFrame(frame);
+})();
+</script>
