@@ -1,0 +1,445 @@
+<title>Mini Nod Prototype</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: 3D stage with a control column; under it, the example chats and the parts. */
+:root{
+  --bg:#f3f2f0; --surface:#ffffff; --fg:#18171a; --muted:#5f5c64; --faint:#8a8790; --line:#e0dde3;
+  --accent:#c4621c; --chip:#ebe8ee; --stage:#17151a; --tool:#2a6fc4;
+  --display:"Space Grotesk",ui-sans-serif,system-ui,sans-serif;
+  --body:"Inter",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121114; --surface:#1b1a1e; --fg:#eeecf1; --muted:#aaa6b0; --faint:#7f7b86; --line:#2d2b31;
+  --accent:#ec9152; --chip:#252329; --stage:#0d0c0f; --tool:#6aa6ec; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121114; --surface:#1b1a1e; --fg:#eeecf1; --muted:#aaa6b0; --faint:#7f7b86; --line:#2d2b31;
+  --accent:#ec9152; --chip:#252329; --stage:#0d0c0f; --tool:#6aa6ec; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.55}
+.wrap{max-width:1180px;margin:0 auto;padding-block:24px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:34px}
+h1,h2{font-family:var(--display);margin:0;text-wrap:balance}
+h1{font-size:clamp(28px,4.5vw,40px);letter-spacing:-.02em}
+h2{font-size:21px}
+h3{margin:0;font-size:12px;font-family:var(--mono);font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+p{margin:0}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.lede{color:var(--muted);max-width:68ch;margin-top:8px}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:20px;align-items:start}
+.view{position:relative;background:var(--stage);border-radius:16px;overflow:hidden;aspect-ratio:16/11;max-width:100%}
+.view canvas{display:block;width:100%;height:100%;touch-action:none}
+.hud{position:absolute;left:14px;top:12px;right:14px;display:flex;justify-content:space-between;gap:10px;font-family:var(--mono);font-size:12px;color:#d9d2c8;pointer-events:none}
+.hint{position:absolute;left:14px;bottom:12px;font-family:var(--mono);font-size:11.5px;color:#958e85;pointer-events:none}
+.side{display:grid;gap:18px;min-width:0}
+.group{display:grid;gap:8px}
+.btns{display:flex;flex-wrap:wrap;gap:7px}
+button{font:inherit;cursor:pointer}
+.chip{background:var(--chip);color:var(--fg);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13.5px}
+.chip:hover{border-color:var(--accent)}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.chip:focus-visible,.ask:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.info{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:6px;min-height:112px}
+.info b{font-family:var(--display);font-size:15px}
+.info .meta{font-family:var(--mono);font-size:12px;color:var(--accent)}
+.info p{font-size:13.5px;color:var(--muted)}
+.chat{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:18px;align-items:start}
+.asks{display:grid;gap:8px}
+.ask{text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 13px;color:var(--fg);font-size:14px}
+.ask:hover{border-color:var(--accent)}
+.ask[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.ask small{display:block;font-family:var(--mono);font-size:11px;color:var(--faint)}
+.convo{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:12px;min-height:220px;align-content:start}
+.bubble{max-width:85%;padding:9px 13px;border-radius:14px;font-size:14.5px}
+.bubble.you{justify-self:end;background:var(--fg);color:var(--bg);border-bottom-right-radius:4px}
+.bubble.lamp{background:var(--chip);border-bottom-left-radius:4px}
+.calls{display:grid;gap:4px;font-family:var(--mono);font-size:12.5px}
+.calls div{color:var(--faint);transition:color .2s}
+.calls div.done{color:var(--tool)}
+.note{font-size:13px;color:var(--faint)}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);font-weight:500}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+tfoot td{font-weight:600;border-bottom:none}
+@media (max-width:900px){.main,.chat{grid-template-columns:minmax(0,1fr)}.view{aspect-ratio:4/3.4}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Simple version · ~$45–65 · three evenings</div>
+    <h1>Mini Nod Prototype</h1>
+    <p class="lede">What the lamp looks like built from only the simple parts list: a pan-tilt servo kit taped to an upside-down mug, eight LEDs under half a ping-pong ball, and a breadboard with the ESP32 beside it. About 16 cm tall. Honest and a bit raw, but every behaviour is real.</p>
+  </header>
+
+  <div class="main">
+    <div class="view" id="view">
+      <div class="hud"><span id="hudL">Reading</span><span id="hudR"></span></div>
+      <div class="hint">Drag to orbit · scroll or pinch to zoom · click a part</div>
+    </div>
+    <div class="side">
+      <div class="group">
+        <h3>Light</h3>
+        <div class="btns" id="modes">
+          <button class="chip" data-mode="read">Reading</button>
+          <button class="chip" data-mode="cozy">Cozy</button>
+          <button class="chip" data-mode="sunrise">Sunrise</button>
+          <button class="chip" data-mode="night">Night glow</button>
+          <button class="chip" data-mode="cafe">Café colour</button>
+          <button class="chip" data-mode="off">Off</button>
+        </div>
+      </div>
+      <div class="group">
+        <h3>Gestures</h3>
+        <div class="btns" id="gestures"></div>
+      </div>
+      <div class="group">
+        <h3>View</h3>
+        <div class="btns">
+          <button class="chip" id="vLamp" aria-pressed="true">Lamp</button>
+          <button class="chip" id="vDesk" aria-pressed="false">Whole setup</button>
+        </div>
+      </div>
+      <div class="info" id="info"><b>Click any part</b><p>The servos, the ping-pong ball head, the mug, the breadboard, the ESP32, the power module, the capacitor or the foil touch pad.</p></div>
+    </div>
+  </div>
+
+  <section style="display:grid;gap:14px">
+    <h2>Talk to it</h2>
+    <p class="lede" style="margin-top:0">Pick a message. The lamp runs the tools Claude chose, in order, and you see them light up. These replies are examples of what Claude does with the brain script, written by hand for this page.</p>
+    <div class="chat">
+      <div class="asks" id="asks"></div>
+      <div class="convo" id="convo"><p class="note">Choose a message on the left.</p></div>
+    </div>
+  </section>
+
+  <section style="display:grid;gap:12px">
+    <h2>Everything on the desk</h2>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Part</th><th>In the model</th><th>~Price</th></tr></thead>
+        <tbody>
+          <tr><td>ESP32 dev board, pre-soldered</td><td>Black board on the breadboard</td><td class="num">$12–18 (2-pack)</td></tr>
+          <tr><td>Pan-tilt kit with 2 SG90 servos</td><td>The black brackets and blue servos</td><td class="num">$8–19</td></tr>
+          <tr><td>SK6812 RGBW strip, 8 LEDs used</td><td>Inside the ping-pong ball</td><td class="num">$12–20</td></tr>
+          <tr><td>Breadboard + jumper wires</td><td>White board and coloured wires</td><td class="num">$8–12</td></tr>
+          <tr><td>MB102 breadboard power module</td><td>Red board at the end of the breadboard</td><td class="num">$6–8</td></tr>
+          <tr><td>Capacitor 470–1000 µF</td><td>Small cylinder on the power rails</td><td class="num">$5–8</td></tr>
+          <tr><td>Ping-pong ball, mug, foil, tape</td><td>Head, base, touch pad</td><td class="num">~$3</td></tr>
+        </tbody>
+        <tfoot><tr><td>Total</td><td></td><td class="num">~$45–65</td></tr></tfoot>
+      </table>
+    </div>
+    <p class="note">Prices are estimates. The phone charger and laptop are ones you already own.</p>
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function(){
+  const view = document.getElementById("view");
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  view.appendChild(renderer.domElement);
+  const scene = new THREE.Scene(); scene.background = new THREE.Color(0x17151a);
+  const camera = new THREE.PerspectiveCamera(38, 1.45, .5, 1000);
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true; controls.minDistance = 10; controls.maxDistance = 140; controls.maxPolarAngle = Math.PI * .49;
+  const VIEWS = { lamp: { pos: [26, 26, 30], tgt: [0, 11, 0] }, desk: { pos: [18, 46, 52], tgt: [-6, 4, 0] } };
+  function setView(v) { camera.position.set(...VIEWS[v].pos); controls.target.set(...VIEWS[v].tgt); controls.update();
+    document.getElementById("vLamp").setAttribute("aria-pressed", v === "lamp"); document.getElementById("vDesk").setAttribute("aria-pressed", v === "desk"); }
+  document.getElementById("vLamp").onclick = () => setView("lamp");
+  document.getElementById("vDesk").onclick = () => setView("desk");
+  setView("lamp");
+
+  const hemi = new THREE.HemisphereLight(0x8a94b0, 0x2a2219, .32); scene.add(hemi);
+  const fill = new THREE.PointLight(0xffd2a0, 0, 0); fill.position.set(0, 40, -10); scene.add(fill);
+
+  const M = (c, o = {}) => new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: .7, metalness: 0 }, o));
+  const mt = {
+    wood: M(0x9c7752, { roughness: .6 }), wall: M(0xcfc8bd, { roughness: .95 }),
+    mug: M(0x7f9a8a, { roughness: .35 }), plastic: M(0x1e1e20, { roughness: .55 }), servo: M(0x2f6fd6, { roughness: .4 }),
+    horn: M(0xf2f2f2, { roughness: .5 }), dome: new THREE.MeshStandardMaterial({ color: 0xf7f4ee, emissive: 0x000000, roughness: .35, transparent: true, opacity: .92 }),
+    led: new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x000000 }),
+    bb: M(0xf1efe9, { roughness: .8 }), red: M(0xc8312f), blue: M(0x2f5fd0), pcb: M(0x141414, { roughness: .6 }), pcbRed: M(0xb5221e, { roughness: .6 }),
+    metal: M(0xc9ccd1, { metalness: .6, roughness: .35 }), yellow: M(0xf2c230), cap: M(0x1b2b5a, { roughness: .4 }), foil: M(0xd7d9dc, { metalness: .7, roughness: .3 }),
+    paper: M(0xf6f1e4, { roughness: .95 }), cover: M(0x2f5a4a), tape: M(0xe8e1c8, { roughness: .9 }), black: M(0x111111)
+  };
+  const parts = [];
+  function mesh(geo, mat, parent, pos, part, cast = true) {
+    const m = new THREE.Mesh(geo, mat); if (pos) m.position.set(...pos);
+    m.castShadow = cast; m.receiveShadow = true; if (part) { m.userData.part = part; parts.push(m); } parent.add(m); return m;
+  }
+  const box = (x, y, z) => new THREE.BoxGeometry(x, y, z);
+  const cyl = (a, b, h, s = 32) => new THREE.CylinderGeometry(a, b, h, s);
+  const P = {
+    mug: { name: "Upside-down mug", meta: "~9.5 cm tall · from your kitchen", text: "The base. Turned upside down, its flat bottom is a perfect stand. Fill-free and heavy enough that the head can move without tipping it." },
+    pan: { name: "Pan servo (SG90)", meta: "2.3 × 1.2 × 2.3 cm · in the kit", text: "Turns the whole head left and right, from -80° to 80°. Plugs into ESP32 pin 18. Buzzes a little while moving, silent when still." },
+    tilt: { name: "Tilt servo (SG90)", meta: "2.3 × 1.2 × 2.3 cm · in the kit", text: "Tilts the head from 40° down (at your book) to 60° up (at the wall). Plugs into ESP32 pin 19." },
+    bracket: { name: "Pan-tilt brackets", meta: "Black plastic · in the kit", text: "Holds the two servos together. Comes with screws and the white servo horns." },
+    dome: { name: "Ping-pong ball head", meta: "Ø 4 cm · ~$1", text: "Half a ping-pong ball glued over the LEDs. It turns 8 bright dots into one soft glowing orb." },
+    leds: { name: "8 RGBW LEDs", meta: "SK6812 strip piece · pin 16", text: "Cut from the end of the strip that has the connector. Warm white plus colour, controlled one by one." },
+    bb: { name: "Breadboard", meta: "16.5 × 5.5 cm", text: "Everything pushes into it, so nothing is soldered. The red and blue rails carry 5 V and ground." },
+    esp: { name: "ESP32 board", meta: "5.5 × 2.8 cm · the lamp's brain", text: "Runs the firmware: fades, moves, gestures, sunrise, alarm and the web API Claude uses over Wi-Fi." },
+    psu: { name: "Power module (MB102)", meta: "USB in, 5 V out", text: "Takes power from a phone charger and feeds the breadboard rails. The servos and LEDs draw from here, not from the ESP32." },
+    cap: { name: "Capacitor", meta: "470–1000 µF", text: "A small energy buffer on the power rails. Stops the board from resetting when both servos start at once." },
+    pad: { name: "Foil touch pad", meta: "Kitchen foil + one wire · pin 4", text: "Tap it: reading light on, with a nod. Tap again: off." },
+    wires: { name: "Servo and LED wires", meta: "Brown = ground · red = 5 V · orange = signal", text: "Run down the back of the mug to the breadboard. Leave slack so the head can turn." }
+  };
+
+  // table + wall + book
+  mesh(box(90, 2, 50), mt.wood, scene, [-5, -1, 2]);
+  mesh(new THREE.PlaneGeometry(200, 120), mt.wall, scene, [0, 50, -23], null, false);
+  const book = new THREE.Group(); book.position.set(15, 0, 11); book.rotation.y = -.7; scene.add(book);
+  mesh(box(26, .35, 18), mt.cover, book, [0, .18, 0]);
+  const p1 = mesh(box(12.6, .8, 17), mt.paper, book, [-6.4, .7, 0]); p1.rotation.z = .05;
+  const p2 = mesh(box(12.6, .8, 17), mt.paper, book, [6.4, .7, 0]); p2.rotation.z = -.05;
+
+  // ---------- the lamp ----------
+  const lamp = new THREE.Group(); lamp.rotation.y = Math.atan2(15, 11) * .55; scene.add(lamp);
+  // upside-down mug
+  mesh(cyl(4.0, 4.4, 9.5, 48), mt.mug, lamp, [0, 4.75, 0], P.mug);
+  const handle = mesh(new THREE.TorusGeometry(2.4, .55, 16, 40, Math.PI * 1.15), mt.mug, lamp, [4.2, 4.6, 0], P.mug);
+  handle.rotation.z = -Math.PI * .57;
+  // tape strips + base bracket
+  mesh(box(5.2, .06, 1), mt.tape, lamp, [0, 9.53, 1.2]); mesh(box(5.2, .06, 1), mt.tape, lamp, [0, 9.53, -1.2]);
+  mesh(box(3.6, .3, 3.2), mt.plastic, lamp, [0, 9.7, 0], P.bracket);
+  mesh(box(.25, 1.6, 3.2), mt.plastic, lamp, [-1.68, 10.6, 0], P.bracket);
+  mesh(box(.25, 1.6, 3.2), mt.plastic, lamp, [1.68, 10.6, 0], P.bracket);
+  // pan servo, standing
+  mesh(box(2.3, 2.25, 1.22), mt.servo, lamp, [0, 10.98, 0], P.pan);
+  mesh(box(3.2, .25, 1.22), mt.servo, lamp, [0, 11.7, 0], P.pan);
+  mesh(cyl(.62, .62, .45), mt.servo, lamp, [-.55, 12.3, 0], P.pan);
+  const PANY = 12.55;
+  const pan = new THREE.Group(); pan.position.set(-.55, PANY, 0); lamp.add(pan);
+  mesh(box(2.6, .18, .5), mt.horn, pan, [0, .05, 0]); mesh(box(.5, .18, 2.6), mt.horn, pan, [0, .05, 0]);
+  // U bracket carried by pan
+  mesh(box(3.2, .25, 2.8), mt.plastic, pan, [.55, .3, 0], P.bracket);
+  mesh(box(.25, 3.0, 2.8), mt.plastic, pan, [-1.0, 1.8, 0], P.bracket);
+  mesh(box(.25, 3.0, 2.8), mt.plastic, pan, [2.1, 1.8, 0], P.bracket);
+  // tilt servo lying on its side, shaft through the right wall (+x)
+  mesh(box(1.22, 2.3, 2.25), mt.servo, pan, [1.3, 1.65, 0], P.tilt);
+  mesh(box(1.22, .25, 3.2), mt.servo, pan, [1.3, 2.35, 0], P.tilt);
+  const TILT = new THREE.Vector3(2.35, 2.35, 0);
+  const tilt = new THREE.Group(); tilt.position.copy(TILT); pan.add(tilt);
+  mesh(cyl(.35, .35, .5, 16), mt.horn, tilt, [.1, 0, 0]).rotation.z = Math.PI / 2;
+  // tilt arm reaching over to the head plate
+  mesh(box(.25, 2.4, 1.6), mt.plastic, tilt, [.4, 1.0, 0], P.bracket);
+  mesh(box(3.6, .25, 1.6), mt.plastic, tilt, [-1.3, 2.1, 0], P.bracket);
+  // head plate faces +z
+  const head = new THREE.Group(); head.position.set(-2.9, 2.1, .8); tilt.add(head);
+  mesh(box(3.4, 3.4, .22), mt.plastic, head, [0, 0, 0], P.bracket);
+  for (let i = 0; i < 8; i++) {
+    const a = i / 8 * Math.PI * 2;
+    mesh(box(.5, .5, .15), mt.led, head, [Math.cos(a) * 1.1, Math.sin(a) * 1.1, .19], P.leds, false);
+  }
+  const dome = mesh(new THREE.SphereGeometry(2.0, 40, 20, 0, Math.PI * 2, 0, Math.PI / 2), mt.dome, head, [0, 0, .12], P.dome, false);
+  dome.rotation.x = Math.PI / 2;
+  const spot = new THREE.SpotLight(0xffffff, 0, 0, Math.PI / 4.2, .6, 1);
+  spot.position.set(0, 0, 1.2); spot.castShadow = true; spot.shadow.mapSize.set(1024, 1024); spot.shadow.camera.near = .5; spot.shadow.bias = -.0008;
+  head.add(spot); const tgt = new THREE.Object3D(); tgt.position.set(0, 0, 40); head.add(tgt); spot.target = tgt;
+  const glow = new THREE.PointLight(0xffffff, 0, 25, 2); glow.position.set(0, 0, 3); head.add(glow);
+
+  // ---------- breadboard side ----------
+  const desk = new THREE.Group(); desk.position.set(-17, 0, -4); desk.rotation.y = .18; scene.add(desk);
+  mesh(box(16.5, .85, 5.5), mt.bb, desk, [0, .43, 0], P.bb);
+  [[2.35, mt.red], [2.0, mt.blue], [-2.0, mt.red], [-2.35, mt.blue]].forEach(([z, m]) => mesh(box(15.5, .02, .08), m, desk, [0, .87, z]));
+  // ESP32 on headers
+  mesh(box(5.4, .5, 2.6), mt.black, desk, [1.5, 1.1, 0], P.esp);
+  mesh(box(5.5, .16, 2.8), mt.pcb, desk, [1.5, 1.45, 0], P.esp);
+  mesh(box(1.8, .3, 1.6), mt.metal, desk, [3.3, 1.65, 0], P.esp);
+  mesh(box(.6, .3, .8), mt.metal, desk, [-1.1, 1.65, 0], P.esp);
+  // power module
+  mesh(box(3.5, .16, 5.3), mt.pcbRed, desk, [-6.4, 1.4, 0], P.psu);
+  mesh(box(1.4, .7, 1.3), mt.metal, desk, [-7.4, 1.85, -1.2], P.psu);
+  mesh(box(1.0, .9, 1.2), mt.black, desk, [-7.5, 1.9, 1.2], P.psu);
+  mesh(box(.5, .4, .3), mt.yellow, desk, [-5.2, 1.65, 2.0]); mesh(box(.5, .4, .3), mt.yellow, desk, [-5.2, 1.65, -2.0]);
+  // capacitor
+  mesh(cyl(.5, .5, 1.3, 20), mt.cap, desk, [-2.8, 1.5, 2.15], P.cap);
+  // jumper arcs on the board
+  function wire(points, color, part, parent = scene, r = .09) {
+    const curve = new THREE.CatmullRomCurve3(points.map(p => new THREE.Vector3(...p)));
+    return mesh(new THREE.TubeGeometry(curve, 48, r, 8, false), M(color, { roughness: .5 }), parent, null, part);
+  }
+  [[0, 0xe84a3c], [.6, 0x2b2b2b], [1.2, 0xf08a24], [1.8, 0x2f8f4e], [2.4, 0xf2c230]].forEach(([dx, c], i) => {
+    const x0 = .2 + dx, z1 = i % 2 ? -2.2 : 2.2;
+    wire([[x0, .9, i % 2 ? -1.4 : 1.4], [x0 - .3, 2.3, (i % 2 ? -1.4 : 1.4) * 1.3], [x0 - 1.2, .9, z1]], c, P.wires, desk, .07);
+  });
+
+  // world-space bundle from the back of the mug to the breadboard
+  lamp.updateMatrixWorld(true); desk.updateMatrixWorld(true);
+  const W = (obj, x, y, z) => obj.localToWorld(new THREE.Vector3(x, y, z)).toArray();
+  const top = W(lamp, -1.4, 10.4, -1.9), mid = W(lamp, -1.8, 6, -4.6), floor = W(lamp, -2.2, .3, -5.6);
+  [[0x6b3d22, 0], [0xd23b2f, .22], [0xf08a24, .44], [0x2f8f4e, .66]].forEach(([c, o], i) => {
+    wire([[top[0] + o, top[1], top[2]], [mid[0] + o, mid[1], mid[2] - .1], [floor[0] + o, floor[1], floor[2]],
+      W(desk, 4 + o * 2, .5, 2.9 + i * .05), W(desk, 2.2 + i * .4, 1.0, 1.7)], c, P.wires);
+  });
+  // loose loop from the head down to the base (slack for turning)
+  wire([[-.4, 13, -1.6], [-1.7, 14.3, -2.8], [-1.6, 11, -2.4], [-1.4, 10.4, -1.9]], 0x3b3b3b, P.wires, lamp, .1);
+  // USB cable to the charger, off the back of the desk
+  wire([W(desk, -8.2, 1.85, -1.2), W(desk, -10, .4, -3), [-30, .3, -18], [-34, -1, -24]], 0x222222, null, scene, .18);
+  // foil touch pad + its wire
+  const pad = mesh(box(3.2, .05, 3.2), mt.foil, scene, [7, .03, -3], P.pad); pad.rotation.y = .3;
+  wire([[6, .1, -3.6], [0, .2, -8], W(desk, 4.5, .9, -2.6)], 0x7a4fc9, P.pad, scene, .06);
+
+  // ---------- behaviour ----------
+  const K = (r, g, b) => new THREE.Color(r / 255, g / 255, b / 255);
+  const kelvin = k => k <= 3000 ? K(255, 190 - (3000 - k) / 12, 120 - (3000 - k) / 8) : K(255 - (k - 3000) / 30, 225, 190 + (k - 3000) / 60);
+  const st = { pan: 0, tilt: -30, panGoal: 0, tiltGoal: -30, speed: 60, col: kelvin(3500), bri: .75, mode: "read", t0: 0, gesture: null };
+  const MODES = {
+    read: { label: "Reading · 3500 K", pose: [0, -32], col: () => kelvin(3500), bri: .8 },
+    cozy: { label: "Cozy · 2700 K, 35%", pose: [0, -10], col: () => kelvin(2700), bri: .38 },
+    sunrise: { label: "Sunrise · 30 min shown in 12 s", pose: [0, 50], anim: "sun" },
+    night: { label: "Night glow · amber 6%", pose: [0, -40], col: () => K(255, 90, 10), bri: .07 },
+    cafe: { label: "Café colour · animated", pose: [0, 20], anim: "cafe" },
+    off: { label: "Off", pose: [0, -40], col: () => K(0, 0, 0), bri: 0 }
+  };
+  function setPose(p, t, s = 60) { st.panGoal = Math.max(-80, Math.min(80, p)); st.tiltGoal = Math.max(-40, Math.min(60, t)); st.speed = s; }
+  function setMode(m) {
+    st.mode = m; st.t0 = performance.now(); const md = MODES[m];
+    if (md.col) { st.col = md.col(); st.bri = md.bri; }
+    setPose(...md.pose, 50); st.gesture = null;
+    document.querySelectorAll("#modes .chip").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === m));
+    document.getElementById("hudL").textContent = md.label;
+  }
+  document.querySelectorAll("#modes .chip").forEach(b => b.onclick = () => setMode(b.dataset.mode));
+
+  // same keyframes as the firmware
+  const G = {
+    nod: [[0, -15, 120, 80], [0, 5, 120, 60], [0, -15, 120, 80], [0, 0, 90, 0]],
+    shake: [[-18, 0, 140, 40], [18, 0, 160, 40], [-18, 0, 160, 40], [18, 0, 160, 40], [0, 0, 120, 0]],
+    droop: [[0, -25, 25, 0]], perk_up: [[0, 25, 90, 150], [0, 18, 60, 0]],
+    look_left: [[-45, 5, 80, 700], [0, 0, 70, 0]], look_right: [[45, 5, 80, 700], [0, 0, 70, 0]],
+    look_at_door: [["door", 0, 70, 900], [0, 0, 70, 0]],
+    curious: [[12, 12, 60, 500], [-6, 6, 40, 300], [0, 0, 60, 0]],
+    happy: [[-10, 10, 150, 0], [10, 14, 150, 0], [-10, 10, 150, 0], [10, 14, 150, 0], [0, 0, 100, 0]],
+    thinking: [[-20, 25, 40, 900], [0, 0, 50, 0]]
+  };
+  const KEEP = { droop: 1, perk_up: 1 };
+  const gbox = document.getElementById("gestures");
+  Object.keys(G).forEach(n => { const b = document.createElement("button"); b.className = "chip"; b.textContent = n.replace(/_/g, " "); b.onclick = () => gesture(n); gbox.appendChild(b); });
+  function gesture(n) {
+    const keys = G[n].map(k => k[0] === "door" ? [60 - st.panGoal, k[1], k[2], k[3]] : k);
+    st.gesture = { keys, i: 0, base: [st.panGoal, st.tiltGoal], hold: 0, holding: false, keep: !!KEEP[n] };
+    const k = keys[0]; setPose(st.gesture.base[0] + k[0], st.gesture.base[1] + k[1], k[2]);
+    document.getElementById("hudR").textContent = "*" + n.replace(/_/g, " ") + "*";
+  }
+  function stepGesture(now) {
+    const g = st.gesture; if (!g) return;
+    if (Math.abs(st.pan - st.panGoal) > .5 || Math.abs(st.tilt - st.tiltGoal) > .5) return;
+    if (!g.holding) { g.holding = true; g.hold = now + g.keys[g.i][3]; return; }
+    if (now < g.hold) return;
+    g.holding = false; g.i++;
+    if (g.i >= g.keys.length) { if (!g.keep) setPose(g.base[0], g.base[1], 60); st.gesture = null; setTimeout(() => { if (!st.gesture) document.getElementById("hudR").textContent = ""; }, 600); return; }
+    const k = g.keys[g.i]; setPose(g.base[0] + k[0], g.base[1] + k[1], k[2]);
+  }
+
+  // ---------- example chats (scripted) ----------
+  const hex = h => K(parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16));
+  const ASKS = [
+    { when: "Tue 23:40", text: "Partner's asleep, I want to read 20 more minutes", calls: [
+      ["move_head(pan=10, tilt=-35, speed=25)", () => setPose(10, -35, 25)],
+      ["set_light(kelvin=2400, brightness=20, fade_seconds=3)", () => { st.col = kelvin(2400); st.bri = .25; st.mode = "custom"; }],
+      ["fade_off_after(minutes=20)", null],
+      ["gesture(name=\"nod\")", () => gesture("nod")]],
+      reply: "Dimmed and pointed at your side only. Lights out in 20 minutes." },
+    { when: "Wed 00:35", text: "Five more minutes?", calls: [
+      ["gesture(name=\"droop\")", () => gesture("droop")],
+      ["set_light(kelvin=2200, brightness=12, fade_seconds=5)", () => { st.col = kelvin(2200); st.bri = .15; st.mode = "custom"; }],
+      ["fade_off_after(minutes=5)", null]],
+      reply: "Fine, five. That's the last one tonight." },
+    { when: "Sat 19:10", text: "Make it feel like a rainy café", calls: [
+      ["move_head(pan=0, tilt=30, speed=30)", () => setPose(0, 30, 30)],
+      ["set_color(hex_color=\"#E88C3C\", brightness=45, fade_seconds=4)", () => { st.mode = "cafe"; st.t0 = performance.now(); }],
+      ["gesture(name=\"happy\")", () => gesture("happy")]],
+      reply: "Warm café glow bounced off the wall, with a little blue for the rain." },
+    { when: "Sun 22:50", text: "Wake me at 7:15 tomorrow, gently", calls: [
+      ["set_wake_alarm(hour=7, minute=15, ramp_minutes=30)", null],
+      ["gesture(name=\"nod\")", () => gesture("nod")],
+      ["turn_off(fade_seconds=10)", () => { st.col = K(0, 0, 0); st.bri = 0; st.mode = "custom"; setTimeout(() => setPose(0, -40, 25), 1500); }]],
+      reply: "Sunrise starts at 6:45 and reaches full light at 7:15. Sleep well." },
+    { when: "Mon 21:30", text: "I'm stressed about tomorrow's presentation", calls: [
+      ["set_light(kelvin=2700, brightness=30, fade_seconds=8)", () => { st.col = kelvin(2700); st.bri = .35; st.mode = "custom"; }],
+      ["move_head(pan=0, tilt=10, speed=20)", () => setPose(0, 10, 20)],
+      ["gesture(name=\"curious\")", () => gesture("curious")]],
+      reply: "Softer light for a slower evening. You've prepared. A short walk in the morning helps more than another run-through tonight." },
+    { when: "Tue 08:05", text: "Leaving now", calls: [
+      ["gesture(name=\"look_at_door\")", () => gesture("look_at_door")],
+      ["set_color(hex_color=\"#3C78DC\", brightness=40, fade_seconds=1)", () => { st.col = hex("#3C78DC"); st.bri = .45; st.mode = "custom"; }],
+      ["turn_off(fade_seconds=20)", () => setTimeout(() => { st.col = K(0, 0, 0); st.bri = 0; setPose(0, -40, 25); }, 2500)]],
+      reply: "Rain after 4 pm. Take the umbrella. Have a good day." }
+  ];
+  const asks = document.getElementById("asks"), convo = document.getElementById("convo");
+  let run = 0;
+  ASKS.forEach((a, idx) => {
+    const b = document.createElement("button"); b.className = "ask"; b.setAttribute("aria-pressed", "false");
+    const s = document.createElement("small"); s.textContent = a.when; b.append(s, document.createTextNode(a.text));
+    b.onclick = () => play(idx, b); asks.appendChild(b);
+  });
+  function play(idx, btn) {
+    const a = ASKS[idx], my = ++run;
+    asks.querySelectorAll(".ask").forEach(x => x.setAttribute("aria-pressed", x === btn));
+    document.getElementById("hudL").textContent = "Claude is driving";
+    document.querySelectorAll("#modes .chip").forEach(b => b.setAttribute("aria-pressed", "false"));
+    convo.replaceChildren();
+    const you = document.createElement("div"); you.className = "bubble you"; you.textContent = a.text; convo.appendChild(you);
+    const calls = document.createElement("div"); calls.className = "calls"; convo.appendChild(calls);
+    const rows = a.calls.map(c => { const d = document.createElement("div"); d.textContent = "→ " + c[0]; calls.appendChild(d); return d; });
+    a.calls.forEach((c, i) => setTimeout(() => { if (run !== my) return; rows[i].classList.add("done"); if (c[1]) c[1](); }, 700 + i * 1100));
+    setTimeout(() => { if (run !== my) return; const r = document.createElement("div"); r.className = "bubble lamp"; r.textContent = a.reply; convo.appendChild(r); }, 900 + a.calls.length * 1100);
+    setView("lamp");
+  }
+
+  // picking
+  const ray = new THREE.Raycaster(), mouse = new THREE.Vector2(), info = document.getElementById("info"); let down = null;
+  renderer.domElement.addEventListener("pointerdown", e => down = [e.clientX, e.clientY]);
+  renderer.domElement.addEventListener("pointerup", e => {
+    if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 5) return;
+    const r = renderer.domElement.getBoundingClientRect();
+    mouse.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1);
+    ray.setFromCamera(mouse, camera); const hit = ray.intersectObjects(parts, false)[0]; if (!hit) return;
+    const p = hit.object.userData.part; info.replaceChildren();
+    const b = document.createElement("b"); b.textContent = p.name; const m = document.createElement("span"); m.className = "meta"; m.textContent = p.meta;
+    const t = document.createElement("p"); t.textContent = p.text; info.append(b, m, t);
+  });
+
+  function resize() { const w = view.clientWidth, h = view.clientHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+  new ResizeObserver(resize).observe(view); resize();
+
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(.1, (now - last) / 1000); last = now;
+    const step = (reduce ? 999 : st.speed) * dt;
+    st.pan += Math.max(-step, Math.min(step, st.panGoal - st.pan));
+    st.tilt += Math.max(-step, Math.min(step, st.tiltGoal - st.tilt));
+    stepGesture(now);
+    pan.rotation.y = -st.pan * Math.PI / 180;
+    tilt.rotation.x = -st.tilt * Math.PI / 180;
+
+    let col = st.col, bri = st.bri;
+    if (st.mode === "sunrise") {
+      const p = Math.min(1, ((now - st.t0) / 12000) % 1.15);
+      const stops = [[0, K(90, 10, 2)], [.35, K(220, 70, 15)], [.7, K(255, 150, 60)], [1, K(255, 222, 182)]];
+      let i = 0; while (i < 2 && p > stops[i + 1][0]) i++;
+      col = stops[i][1].clone().lerp(stops[i + 1][1], Math.max(0, Math.min(1, (p - stops[i][0]) / (stops[i + 1][0] - stops[i][0]))));
+      bri = .03 + Math.pow(p, 1.7) * .97;
+    } else if (st.mode === "cafe") {
+      const w = Math.pow(Math.max(0, Math.sin((now - st.t0) / 420)), 14);
+      col = hex("#E88C3C").lerp(K(70, 120, 220), w * .7); bri = .5;
+    }
+    spot.color.copy(col); spot.intensity = bri * 2.4;
+    glow.color.copy(col); glow.intensity = bri * 1.2;
+    mt.dome.emissive.copy(col).multiplyScalar(bri > 0 ? Math.min(1, .3 + bri) : 0);
+    mt.led.emissive.copy(col).multiplyScalar(bri > 0 ? 1 : 0);
+    const up = Math.max(0, Math.min(1, (st.tilt - 10) / 40));
+    fill.color.copy(col); fill.intensity = bri * (.06 + up * .4);
+    controls.update(); renderer.render(scene, camera); requestAnimationFrame(frame);
+  }
+  setMode("read");
+  requestAnimationFrame(frame);
+})();
+</script>
