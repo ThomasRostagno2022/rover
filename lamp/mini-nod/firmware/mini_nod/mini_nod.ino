@@ -34,6 +34,7 @@ const char* TIMEZONE      = "EST5EDT,M3.2.0,M11.1.0";   // New York
 
 const int LED_PIN   = 16;
 const int LED_COUNT = 8;      // how many LEDs you cut from the strip
+const bool LED_RGBW = true;   // false for plain RGB LEDs (WS2812B / NeoPixel stick or ring)
 const int PAN_PIN   = 18;
 const int TILT_PIN  = 19;
 const int TOUCH_PIN = 4;      // T0: a wire to copper tape or foil
@@ -51,7 +52,7 @@ const int READ_PAN = 0, READ_TILT = -30;   // reading pose
 const int REST_PAN = 0, REST_TILT = -40;   // resting pose (light off)
 
 // ---------------- LIGHT ----------------
-Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRBW + NEO_KHZ800);
+Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, (LED_RGBW ? NEO_GRBW : NEO_GRB) + NEO_KHZ800);
 // current and target values for R, G, B, W (0..255 at full brightness)
 float cur[4] = {0, 0, 0, 0}, from[4] = {0, 0, 0, 0}, to[4] = {0, 0, 0, 0};
 unsigned long fadeStart = 0, fadeMs = 1;
@@ -93,7 +94,12 @@ void updateLight() {
   float p = min(1.0f, (millis() - fadeStart) / (float)fadeMs);
   p = p * p * (3 - 2 * p);                      // smooth start and end
   for (int i = 0; i < 4; i++) cur[i] = from[i] + (to[i] - from[i]) * p;
-  uint32_t c = strip.Color((uint8_t)cur[0], (uint8_t)cur[1], (uint8_t)cur[2], (uint8_t)cur[3]);
+  uint32_t c;
+  if (LED_RGBW) c = strip.Color((uint8_t)cur[0], (uint8_t)cur[1], (uint8_t)cur[2], (uint8_t)cur[3]);
+  else {  // no white chip: mix warm white from red, green and blue
+    float w = cur[3];
+    c = strip.Color((uint8_t)min(255.0f, cur[0] + w), (uint8_t)min(255.0f, cur[1] + w * 0.72f), (uint8_t)min(255.0f, cur[2] + w * 0.40f));
+  }
   for (int i = 0; i < LED_COUNT; i++) strip.setPixelColor(i, c);
   strip.show();
 }
