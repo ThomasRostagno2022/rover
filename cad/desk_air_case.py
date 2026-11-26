@@ -266,6 +266,123 @@ def option_b():
     return body, plate, plinth.translate([0, 0, PL_H]), {"W": W, "HS": HS, "D": D, "H": H, "tilt": TILT, "knob": (kx, ky)}
 
 
+
+# ---------------------------------------------------------------- Option C: Pod
+def stadium(w, h):
+    r = h / 2
+    a = (w - h) / 2
+    return (CrossSection.circle(r).translate([-a, 0]) + CrossSection.circle(r).translate([a, 0])).hull()
+
+
+def option_c():
+    """A capsule 'pod' with a black visor, cradled by a hollow pedestal that houses
+    the CO2 sensor. Side dial on the right end, speaker grille on the left end."""
+    TILT = 20.0
+    W, H, T = 170.0, 96.0, 34.0          # capsule width, height, depth
+    CH = 2.5                              # edge chamfer
+    t = math.radians(TILT)
+    s, c = math.sin(t), math.cos(t)
+    Y0, Z0 = 20.0, 79.0                   # centre of the capsule's front face
+    to_world = [[1, 0, 0, 0], [0, s, -c, Y0], [0, c, s, Z0]]
+
+    def slab(cs, w0, w1):
+        return Manifold.extrude(cs, w1 - w0).translate([0, 0, w0])
+
+    st = stadium(W, H)
+    outer_l = Manifold.hull(union([slab(st.offset(-CH, JoinType.Round), -T, -T + 0.01),
+                                   slab(st, -T + CH, -CH),
+                                   slab(st.offset(-CH, JoinType.Round), -0.01, 0)]))
+    cavity_l = slab(st.offset(-WALL, JoinType.Round), -T + WALL, 1)
+    pocket_l = slab(st.offset(-1.6, JoinType.Round), -PLATE_T, 1)
+    body_l = outer_l - cavity_l - pocket_l
+
+    # screw tabs behind the visor (plate also rests on the 0.8 mm ledge all round)
+    tab_pts = [(sx * 30, sy * (H / 2 - 1.6 - 3.5)) for sx in (-1, 1) for sy in (-1, 1)]
+    for (u, v) in tab_pts:
+        sy = 1 if v > 0 else -1
+        tab = box(u - 6, u + 6, min(v - 3.5 * sy, v + 6 * sy), max(v - 3.5 * sy, v + 6 * sy), -PLATE_T - 3, -PLATE_T)
+        body_l = body_l + (tab ^ outer_l) - cyl(u, v, -PLATE_T - 4, -PLATE_T + 0.1, 2.2)
+
+    # seam line around the shell
+    seam = slab(st.offset(1, JoinType.Round), -10.6, -9.4) - slab(st.offset(-0.8, JoinType.Round), -11, -9)
+    body_l = body_l - seam
+
+    # side dial (right end) and speaker grille (left end)
+    knob_hole = Manifold.cylinder(14, KNOB_HOLE_D / 2).rotate([0, 90, 0]).translate([W / 2 - 8, 0, -17])
+    grille = union([Manifold.cylinder(14, 1.2).rotate([0, 90, 0]).translate([-W / 2 - 4, v, w])
+                    for v in (-10, -5, 0, 5, 10) for w in (-14, -19, -24, -29)])
+    body_l = body_l - knob_hole - grille
+
+    # fixing to the pedestal + cable pass-through (capsule back, lower centre)
+    fix_pts = [(-25, -22), (25, -22), (0, 4)]
+    for (u, v) in fix_pts:
+        body_l = body_l - cyl(u, v, -T - 1, -T + WALL + 1, 3.4)
+    cable_l = cyl(0, -10, -T - 9, -T + WALL + 1, 10)
+    body_l = body_l - cable_l
+
+    capsule = body_l.transform(to_world)
+    capsule_outer = outer_l.transform(to_world)
+
+    # pedestal: hull from a rounded foot to a pad on the capsule's back, cut to cradle the capsule.
+    # It is open underneath; a separate base plate carries the CO2 sensor and the weights.
+    FW, FD, FCY = 120.0, 80.0, 50.0
+    foot = rbox(0, FCY, FW, FD, 0, 6, 16)
+    pad_l = box(-30, 30, -32, 12, -T - 0.01, -T)
+    ped_outer = Manifold.hull(union([foot, pad_l.transform(to_world)]))
+    clear = Manifold.hull(union([slab(st.offset(-CH + 0.3, JoinType.Round), -T - 0.3, -T + 0.01),
+                                 slab(st.offset(0.3, JoinType.Round), -T + CH, -CH)])).transform(to_world)
+    foot_in = rbox(0, FCY, FW - 2 * WALL, FD - 2 * WALL, -1, 6, 16 - WALL)
+    pad_in = box(-30 + WALL, 30 - WALL, -32 + WALL, 12 - WALL, -T - WALL - 0.01, -T - WALL).transform(to_world)
+    ped_inner = Manifold.hull(union([foot_in, pad_in]))
+    clear_in = Manifold.hull(union([slab(st.offset(-CH + 0.3 + WALL, JoinType.Round), -T - 0.3 - WALL, -T + 0.01),
+                                    slab(st.offset(0.3 + WALL, JoinType.Round), -T + CH, -CH)])).transform(to_world)
+    pedestal = ped_outer - clear - (ped_inner - clear_in)
+
+    # bosses for the three capsule screws (driven from inside the capsule)
+    bosses = union([Manifold.cylinder(9, 4).translate([u, v, -T - 9.3]) for (u, v) in fix_pts]).transform(to_world)
+    boss_holes = union([Manifold.cylinder(11, 1.3).translate([u, v, -T - 10.3]) for (u, v) in fix_pts]).transform(to_world)
+    pedestal = pedestal + (bosses ^ ped_outer) - boss_holes - cable_l.transform(to_world)
+
+    # bosses on the side walls for the base plate screws
+    base_pts = [(sx * (FW / 2 - WALL - 4), y) for sx in (-1, 1) for y in (FCY - 18, FCY + 18)]
+    pedestal = pedestal + (union([cyl(x, y, WALL + 0.2, WALL + 9, 8.0) for (x, y) in base_pts]) ^ ped_outer)
+    pedestal = pedestal - union([cyl(x, y, WALL, WALL + 10, 2.6) for (x, y) in base_pts])
+
+    # vents in the back (sensor sits just inside them) and the USB-C opening
+    vents = union([box(-22 + i * 5.5, -19.8 + i * 5.5, 60, 110, 12, 30) for i in range(9)]) - ped_inner
+    pedestal = pedestal - vents
+    pedestal = pedestal - box(-USB_SLOT[0] / 2, USB_SLOT[0] / 2, 70, 110, 6.5, 6.5 + USB_SLOT[1])
+
+    # base plate (drops into the open bottom)
+    base = rbox(0, FCY, FW - 2 * WALL - 2 * FIT, FD - 2 * WALL - 2 * FIT, 0, WALL, 16 - WALL - FIT)
+    scx, scy = 0.0, 68.0
+    base = base + union([cyl(scx + sx * SCD_HOLES[0] / 2, scy + sy * SCD_HOLES[1] / 2, WALL - 0.1, WALL + 6, 5.0) for sx in (-1, 1) for sy in (-1, 1)])
+    base = base - union([cyl(scx + sx * SCD_HOLES[0] / 2, scy + sy * SCD_HOLES[1] / 2, WALL, WALL + 7, 2.2) for sx in (-1, 1) for sy in (-1, 1)])
+    for x in (-28, 28):
+        base = base + (cyl(x, 36, WALL - 0.1, WALL + 3, 29.2) - cyl(x, 36, WALL, WALL + 4, 26.0))
+    for (x, y) in base_pts:
+        base = base - cyl(x, y, -1, WALL + 1, 3.4) - cyl(x, y, -0.01, 1.6, 6.6, 3.4)
+    for x in (-40, 40):
+        for y in (FCY - 30, FCY + 30):
+            base = base - cyl(x, y, -0.1, 1.0, 10.5)
+
+    # black visor plate, screen centred
+    pl_cs = st.offset(-1.6 - FIT, JoinType.Round)
+    plate = slab(pl_cs, -PLATE_T, 0)
+    win_w, win_h = ACT_W + 1.0, ACT_H + 1.0
+    cu, cv = SCREEN_DX, SCREEN_DY
+    cuts = [rbox(cu, cv, win_w, win_h, -PLATE_T - 1, 1, 1.0),
+            Manifold.hull(union([rbox(cu, cv, win_w, win_h, -1.6, -1.59, 1.0), rbox(cu, cv, win_w + 3.2, win_h + 3.2, 0.01, 0.6, 2.0)]))]
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            plate = plate + cyl(sx * HOLE_DX, sy * HOLE_DY, -PLATE_T - STANDOFF_H, -PLATE_T + 0.01, 6.5)
+            cuts.append(cyl(sx * HOLE_DX, sy * HOLE_DY, -PLATE_T - STANDOFF_H - 1, -1.0, 2.6))
+    for (u, v) in tab_pts:
+        cuts.append(cyl(u, v, -PLATE_T - 0.1, -PLATE_T + 2.0, 1.8))
+    plate = plate - union(cuts)
+    return capsule, plate, pedestal, base, {"tilt": TILT, "to_world": to_world, "W": W, "T": T}
+
+
 # ---------------------------------------------------------------- knob cap
 def knob_cap():
     D_OUT, HGT = 24.0, 15.0
@@ -291,3 +408,9 @@ if __name__ == "__main__":
     save_stl(plate_to_print(b_plate), "B_float_front_plate.stl")
     save_stl(b_plinth, "B_float_plinth.stl")
     save_stl(knob, "knob_cap.stl")
+
+    c_capsule, c_plate, c_pedestal, c_base, c_info = option_c()
+    save_stl(c_capsule, "C_pod_capsule.stl")
+    save_stl(plate_to_print(c_plate), "C_pod_visor_plate.stl")
+    save_stl(c_pedestal, "C_pod_pedestal.stl")
+    save_stl(c_base, "C_pod_base_plate.stl")
