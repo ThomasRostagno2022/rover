@@ -19,7 +19,7 @@ Regenerate: `pip install manifold3d numpy` then `python desk_air_case.py`.
 ## Print settings (PLA or PETG)
 - 0.2 mm layers, 3 walls, 15 % infill.
 - Front plates: front face down on a textured or smooth bed for a clean finish. No supports.
-- Wedge body: print standing on its back face. Float body: print upside down (top on the bed). Supports only for the USB-C slot if your slicer asks.
+- Both bodies: print standing on their flat back face, front opening facing up. Turn on supports (touching the bed only) if your slicer flags the USB-C slot or vents.
 - Plinth (Float): as exported, no supports. Print it in black for the shadow-gap look.
 - Knob cap: as exported. Print in an accent colour (orange looks great on Bone or Graphite).
 
